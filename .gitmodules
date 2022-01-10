@@ -1,0 +1,6 @@
+[submodule "tools/reduce_sequences"]
+	path = tools/reduce_sequences
+	url = git@github.com:lucblassel/reduce_sequences.git
+[submodule "tools/rename_sequence"]
+	path = tools/rename_sequence
+	url = git@github.com:lucblassel/rename_sequence.git
