@@ -4,3 +4,6 @@
 [submodule "tools/rename_sequence"]
 	path = tools/rename_sequence
 	url = git@github.com:lucblassel/rename_sequence.git
+[submodule "tools/Winnowmap"]
+	path = tools/Winnowmap
+	url = git@github.com:marbl/Winnowmap.git
