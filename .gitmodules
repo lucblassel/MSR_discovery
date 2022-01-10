@@ -7,3 +7,6 @@
 [submodule "tools/Winnowmap"]
 	path = tools/Winnowmap
 	url = git@github.com:marbl/Winnowmap.git
+[submodule "tools/NanoSim"]
+	path = tools/NanoSim
+	url = git@github.com:bcgsc/NanoSim.git
