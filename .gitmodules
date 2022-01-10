@@ -10,3 +10,6 @@
 [submodule "tools/NanoSim"]
 	path = tools/NanoSim
 	url = git@github.com:bcgsc/NanoSim.git
+[submodule "tools/pbsim2"]
+	path = tools/pbsim2
+	url = git@github.com:yukiteruono/pbsim2.git
