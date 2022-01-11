@@ -19,3 +19,6 @@
 [submodule "tools/TandemTools"]
 	path = tools/TandemTools
 	url = git@github.com:lucblassel/TandemTools.git
+[submodule "tools/fastatools"]
+	path = tools/fastatools
+	url = git@github.com:lucblassel/fastatools.git
