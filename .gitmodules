@@ -1,9 +1,6 @@
 [submodule "tools/reduce_sequences"]
 	path = tools/reduce_sequences
 	url = git@github.com:lucblassel/reduce_sequences.git
-[submodule "tools/rename_sequence"]
-	path = tools/rename_sequence
-	url = git@github.com:lucblassel/rename_sequence.git
 [submodule "tools/Winnowmap"]
 	path = tools/Winnowmap
 	url = git@github.com:marbl/Winnowmap.git
@@ -16,3 +13,6 @@
 [submodule "tools/minimap2"]
 	path = tools/minimap2
 	url = git@github.com:lh3/minimap2.git
+[submodule "tools/rename_sequences"]
+	path = tools/rename_sequences
+	url = git@github.com:lucblassel/rename_sequences.git
