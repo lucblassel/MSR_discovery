@@ -16,3 +16,6 @@
 [submodule "tools/rename_sequences"]
 	path = tools/rename_sequences
 	url = git@github.com:lucblassel/rename_sequences.git
+[submodule "tools/TandemTools"]
+	path = tools/TandemTools
+	url = git@github.com:lucblassel/TandemTools.git
