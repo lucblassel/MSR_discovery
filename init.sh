@@ -104,11 +104,11 @@ if [[ "$OSTYPE" == "darwin"* ]] #MacOS
 then
     echo "Extracting MacOS reduce and rename binaries"
     xz -cdk "$ROOT/tools/reduce_sequences/bin/macos_amd64.xz" > "$ROOT/bin/reduce_sequences"
-    xz -cdk "$ROOT/tools/rename_sequence/bin/macos_amd64.xz" > "$ROOT/bin/rename_sequences"
+    xz -cdk "$ROOT/tools/rename_sequences/bin/macos_amd64.xz" > "$ROOT/bin/rename_sequences"
 else #Linux
     echo "Extracting Linux reduce and rename binaries"
     xz -cdk "$ROOT/tools/reduce_sequences/bin/linux_amd64.xz" > "$ROOT/bin/reduce_sequences"
-    xz -cdk "$ROOT/tools/rename_sequence/bin/linux_amd64.xz" > "$ROOT/bin/rename_sequences"
+    xz -cdk "$ROOT/tools/rename_sequences/bin/linux_amd64.xz" > "$ROOT/bin/rename_sequences"
 fi
 chmod +x "$ROOT/bin/reduce_sequences"
 chmod +x "$ROOT/bin/rename_sequences"
