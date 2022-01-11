@@ -64,10 +64,27 @@
 
 ## Init script
 
-- [ ] Init script / pipeline that:
-  - [ ] Builds the different tools in submodules
-  - [ ] copies / links executables to bin folder
-  - [ ] Decompress pre-trained models
+- [x] Init script / pipeline that:
+  - [x] Builds the different tools in submodules
+  - [x] copies / links executables to bin folder
+  - [x] Decompress pre-trained models
+
+This script works for MacOS and Linux in theory, with amd64 CPU architectures.
+It will build:
+
+- Winnowmap on MacOS/Linux
+- PBSim on MacOS/Linux
+- Minimap2 on MacOS
+  It will download and setup prebuilt binaries for:
+- Minimap2 on Linux
+- Go reduce_sequences and rename_sequences on MacOS/Linux
+
+Dependencies:
+
+- You will [need zlib development libraries](https://github.com/lh3/minimap2#installation) to build minimap2 on MacOs.
+- You will need gcc 10 or 11 to build winnowmap on macos, you can install it with homebrew: `brew install gcc@10` or `gcc@11`.
+
+### description
 
 ## Pipelines
 
