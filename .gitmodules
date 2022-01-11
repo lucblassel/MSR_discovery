@@ -13,3 +13,6 @@
 [submodule "tools/pbsim2"]
 	path = tools/pbsim2
 	url = git@github.com:yukiteruono/pbsim2.git
+[submodule "tools/minimap2"]
+	path = tools/minimap2
+	url = git@github.com:lh3/minimap2.git
