@@ -1,3 +1,94 @@
+# Mapping-friendly Sequence Reduction function discovery
+
+## Introduction
+
+This is the repository linked to [title of publication (TODO)](https://lucblassel.com/publications).  
+It contains the necessary pipelines, tools and information in order to rerun the analyses performed during the project as well as explore this subject further.
+
+## Quick start
+
+This is made to work on Linux or MacOS systems. You must first clone this repository with the `--recursive` flag in order to also get the tools included as submodules. You can then run the init script that builds the tools that need to be compiled and makes sure the various data files and pre-trained models are in the right place, the `--data` flag ensure the reference genomes are downloaded as well. You should then be able to run the pipelines.
+
+```shell
+git clone --recursive git@github.com:lucblassel/MSR_discovery.git
+cd MSR_discovery
+./init.sh --data
+nextflow run <pipeline-name>
+```
+
+## Dependencies
+
+You will need the following dependencies available on your system in order to run the pipelines:
+
+- gcc >= 10 to compile [winnowmap](https://github.com/marbl/Winnowmap) on MacOs. You can install it with HomeBrew on MacOs: `brew install gcc@10`
+- zlib development file to compile [minimap](https://github.com/lh3/minimap2)
+- [k8 javascript shell](https://github.com/attractivechaos/k8) to run our fork of [paftools.js](https://github.com/lh3/minimap2/blob/master/misc/README.md)
+- [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html) in order to execute the pipelines
+
+## Pipelines
+
+All the pipelines are implemented in [NextFlow](https://www.nextflow.io). You can run them by using: `nextflow run <pipeline-name>`.
+
+### MSR Selection
+
+This pipeline generate all the unique MSRs _(as described in the paper)_ and evaluated each of them on a low coverage human genome simulated dataset.  
+The 10 best MSRs w.r.t error rate and 10 best w.r.t number of reads mapped are selected for further analysis and are used as input for further pipelines.
+
+### MSR In depth evaluation
+
+The previously selected MSRs are evaluated on a wider range of use cases.  
+For a given reference, a set of reads is simulated with a coverage of approximately 1.5. The reads and reference are transformed with each MSR, then the transformed reads are mapped to transformed reference. The resulting mapping is then evaluated.  
+This process is done for each possible combination of:
+
+- Reference:
+  - T2T CHM13 v1.1 whole human genome reference
+  - TandemTools simulated centromeric reference
+  - Whole Drosophila _melanogaster_ reference
+- Simulator:
+  - NanoSim with R94 model
+  - PBSim with P6C4 model
+- Mapper:
+  - minimap2
+  - winnowmap
+
+Each possible mapping is evaluated using the `mapeval` command in our fork of `paftools.js`.  
+A single `.csv` file with all the evaluation is produced and can be used to generate plots and tables.
+
+### Plotting and Tables
+
+This has been implemented as an Rmarkdown notebook.
+
+## Included tools
+
+We have made the choice of including all the tools used in this project as git submodules when possible.
+
+- Read simulation
+  - Nanosim
+  - PbSim2
+- Mapping
+  - Minimap2
+  - Winnowmap
+- Read manipulation:
+  - fastatools
+  - lucblassel/rename_sequences
+  - lucblassel/reduce_sequences
+- result file manipulation:
+  - our custom fork of paftools
+  - bedtools
+
+The [init.sh](./init.sh) script will set up the tools before you run the pipeline, it currently only supports amd64 architectures on Linux and MacOS. It will build:
+
+- Winnowmap on MacOS/Linux
+- PBSim on MacOS/Linux
+- Minimap2 on MacOS
+
+It will download and setup prebuilt binaries for:
+
+- Minimap2 on Linux
+- Go reduce_sequences and rename_sequences on MacOS/Linux
+
+If you specify the `--data` flag it will also download the reference datasets used in the analysis to the correct directories for the pipelines to work.
+
 # Tools used in the HPC project
 
 ## Simulation tools
@@ -9,16 +100,16 @@
 
 - [x] Minimap: version + git checkout _(include release folder)_
 - [x] Winnowmap: version (git checkout ?) + meryl _(submodule)_
-- [ ] TandemTools: git checkout (for reference sequence)
+- [x] TandemTools: git checkout (for reference sequence)
 
 ## Evaluation tools
 
-- [ ] paftoolsCustom.js: include in subdir (forked from minimap...)
+- [x] paftoolsCustom.js: include in subdir (forked from minimap 2.18...) depends on [k8 javascript shell](https://github.com/attractivechaos/k8)
 - [ ] bedtools intersect
 
 ## Pipelining
 
-- [ ] Nextflow _(mention as dependency, don't include in repo)_
+- [x] Nextflow _(mention as dependency, don't include in repo)_
 
 ## Custom tools
 
@@ -29,8 +120,9 @@
 ### Sequence manipulation
 
 - [ ] Library: reduction-functions github (keep in README)
-- [x] Reducer: reduceDelete*linux_amd64 *(submodule)\_
-- [x] Renamer: applyOffsets*linux_amd64 *(submodule)\_
+- [x] Reducer: `reduceDelete_linux_amd64` _(submodule)_
+- [x] Renamer: `applyOffsets_linux_amd64` _(submodule)_
+- [x] fastatools for renaming references and other fasta manipulation
 
 ## Plotting and results
 
@@ -42,18 +134,19 @@
 
 ### Sequence references
 
-- [ ] CHM13 T2T version..
-- [ ] TandemTools reference (git checkout)
+- [x] [CHM13 T2T v1.1](https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/chm13.draft_v1.1.fasta.gz)
+- [x] TandemTools reference (git checkout)
 - [ ] drosophila reference
+- [ ] Add option to DL to init script
 
 ### Simulation models
 
-- [ ] nanosim model (git checkout)
-- [ ] pbsim model (git checkout)
+- [x] nanosim model (git checkout)
+- [x] pbsim model (git checkout)
 
 ### repeats
 
-- [ ] repeat masker
+- [ ] [repeat masker](https://www.repeatmasker.org/genomes/hg38/RepeatMasker-rm405-db20140131/hg38.fa.out.gz) _(HG38 - Dec 2013 - RepeatMasker open-4.0.5 - Repeat Library 20140131)_
 
 ### real datasets
 
@@ -88,12 +181,12 @@ Dependencies:
 
 ## Pipelines
 
-- [ ] MSR selection pipeline (Write it, low coverage all MSRs)
-- [ ] Function evaluation pipeline (selected MSRs):
-  - [ ] Whole genome
-  - [ ] Drosophila
-  - [ ] Tandemtools simulated centromere
+- [x] MSR selection pipeline (Write it, low coverage all MSRs)
+- [x] Function evaluation pipeline (selected MSRs):
+  - [x] Whole genome
+  - [x] Drosophila
+  - [x] Tandemtools simulated centromere
 
 ## Figure generation
 
-- [ ] Plotting RMarkdown.
+- [x] Plotting RMarkdown.
