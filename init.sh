@@ -31,7 +31,7 @@ cd "$ROOT/tools/pbsim2"
 ./configure && make
 cd "$ROOT"
 ln -s "$ROOT/tools/pbsim2/src/pbsim" "$ROOT/bin/pbsim"
-ln -s "$ROOT/tools/pbsim/data/P6C4.model" "$ROOT/data/models"
+ln -s "$ROOT/tools/pbsim2/data/P6C4.model" "$ROOT/data/models"
 
 
 
