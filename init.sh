@@ -43,13 +43,13 @@ echo "
 #####################
 
 "
-if [[ "$OSTYPE" == "darwin"* ]]
+if [[ "$OSTYPE" == "darwin"* ]] #MacOs
 then
     cd "$ROOT/tools/minimap2"
     make
     cd "$ROOT"
     ln -s "$ROOT/tools/minimap2/minimap2" "$ROOT/bin"
-else
+else #Linux
     echo "Downloading minimap2 release"
     cd "$ROOT/tools"
     wget "https://github.com/lh3/minimap2/releases/download/v2.22/minimap2-2.22_x64-linux.tar.bz2"
@@ -90,6 +90,29 @@ fi
 cd "$ROOT"
 ln -s "$ROOT/tools/Winnowmap/bin/meryl" "$ROOT/bin/meryl"
 ln -s "$ROOT/tools/Winnowmap/bin/winnowmap" "$ROOT/bin/winnowmap"
+
+
+echo "
+
+######################
+# Building Bedtools #
+######################
+
+"
+if [[ "$OSTYPE" == "darwin"* ]]
+then
+    cd "$ROOT/tools/bedtools2"
+    make
+    cd "$ROOT"
+    ln -s "$ROOT/tools/bedtools2/bin/bedtools" "$ROOT/bin"
+else
+    echo "Downloading bedtools release"
+    cd "$ROOT/tools"
+    wget "https://github.com/arq5x/bedtools2/releases/download/v2.30.0/bedtools.static.binary"
+    chmod +x "bedtools.static.binary"
+    cd "$ROOT"
+    ln -s "$ROOT/tools/bedtools.static.binary" "$ROOT/bin/bedtools"
+fi
 
 
 echo "
