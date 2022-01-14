@@ -33,35 +33,42 @@ You supplied $# arguments.
     "
     mkdir -p "$ROOT/temp_data" && cd "$ROOT/temp_data"
     
-    echo "Downloading data files"
-    # Whole CHM13 genome
-    wget "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/009/914/755/GCA_009914755.3_CHM13_T2T_v1.1/GCA_009914755.3_CHM13_T2T_v1.1_genomic.fna.gz"
+    if [[ ! -f "$ROOT/data/whole_human_genome.fa" ]]; then
+        wget "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/009/914/755/GCA_009914755.3_CHM13_T2T_v1.1/GCA_009914755.3_CHM13_T2T_v1.1_genomic.fna.gz"
+        echo "Pre-Processing Whole human genome"
+        gunzip -c "./GCA_009914755.3_CHM13_T2T_v1.1_genomic.fna.gz" | \
+        "$ROOT/tools/fastatools/fastatools" upper | \
+        "$ROOT/tools/fastatools/fastatools" rename --regex '\.[0-9] Homo.*' > \
+        "$ROOT/data/whole_human_genome.fa"
+    else
+        echo "Reference Human genome already downloaded and processed."
+    fi
     
-    # Drosophila genome
-    wget "https://obj.umiacs.umd.edu/marbl_publications/hicanu/dmel_hifi_40x.fasta.gz"#reads
-    wget "http://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.35_FB2020_04/fasta/dmel-all-chromosome-r6.35.fasta.gz"
+    if [[ ! -f "$ROOT/data/real_drosophila_reads.fa" ]]; then
+        wget "https://obj.umiacs.umd.edu/marbl_publications/hicanu/dmel_hifi_40x.fasta.gz"#reads
+        mv "dmel_hifi_40x.fasta.gz" "$ROOT/data/real_drosophila_reads.fa"
+    else
+        echo "Real Drosophila reads already downloaded."
+    fi
     
-    # Preprocessing data
-    echo "Pre-Processing Whole human genome"
-    gunzip -c "./GCA_009914755.3_CHM13_T2T_v1.1_genomic.fna.gz" | \
-    "$ROOT/tools/fastatools/fastatools" upper | \
-    "$ROOT/tools/fastatools/fastatools" rename --regex '\.[0-9] Homo.*' > \
-    "$ROOT/data/whole_human_genome.fa"
+    if [[ ! -f "$ROOT/data/whole_drosophila_genome.fa" ]]; then
+        wget "http://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.35_FB2020_04/fasta/dmel-all-chromosome-r6.35.fasta.gz"
+        echo "Pre-processing drosophila genome"
+        gunzip -c "dmel-all-chromosome-r6.35.fasta.gz" | \
+        "$ROOT/tools/fastatools/fastatools" subset -s 1 -e 7 > \
+        "$ROOT/data/whole_drosophila_genome.fa"
+    else
+        echo "Reference Drosophila genome already downloaded and processed."
+    fi
     
-    echo "Pre-processing drosophila genome"
-    gunzip -c "dmel-all-chromosome-r6.35.fasta.gz" | \
-    "$ROOT/tools/fastatools/fastatools" subset -s 1 -e 7 > \
-    "$ROOT/data/whole_drosophila_genome.fa"
-    
-    mv "dmel_hifi_40x.fasta.gz" "$ROOT/data/real_drosophila_reads.fa"
-    
-    # Move tandemtools genome
-    cp "$ROOT/tools/TandemTools/test_data/simulated_del.fasta" "$ROOT/data/tandemtools.ref.fa"
+    if [[ ! -f "$ROOT/data/tandemtools.ref.fa" ]]; then
+        cp "$ROOT/tools/TandemTools/test_data/simulated_del.fasta" "$ROOT/data/tandemtools.ref.fa"
+    else
+        echo "Already processed simulated centromeric sequence."
+    fi
     
     cd "$ROOT" && rm -rf "$ROOT/temp_data"
 fi
-
-exit 0
 
 echo "
 
@@ -70,9 +77,17 @@ echo "
 ######################
 
 "
-ln -s "$ROOT/tools/NanoSim/src/simulator.py" "$ROOT/bin/nanosim.py"
-echo "Extracting nanosim pre-trained model"
-tar -xzf "$ROOT/tools/NanoSim/pre-trained_models/human_NA12878_DNA_FAB49712_guppy_flipflop.tar.gz" --directory "$ROOT/data/models"
+if [[ ! -f "$ROOT/bin/nanosim.py" ]]; then
+    ln -s "$ROOT/tools/NanoSim/src/simulator.py" "$ROOT/bin/nanosim.py"
+else
+    echo "Nanosim executable already present."
+fi
+if [[ ! -d "$ROOT/data/models/human_NA12878_DNA_FAB49712_guppy_flipflop" ]]; then
+    echo "Extracting nanosim pre-trained model"
+    tar -xzf "$ROOT/tools/NanoSim/pre-trained_models/human_NA12878_DNA_FAB49712_guppy_flipflop.tar.gz" --directory "$ROOT/data/models"
+else
+    echo "Nanosim model already present."
+fi
 
 
 
@@ -83,11 +98,19 @@ echo "
 ##################
 
 "
-cd "$ROOT/tools/pbsim2"
-./configure && make
-cd "$ROOT"
-ln -s "$ROOT/tools/pbsim2/src/pbsim" "$ROOT/bin/pbsim"
-ln -s "$ROOT/tools/pbsim2/data/P6C4.model" "$ROOT/data/models"
+if [[ ! -f "$ROOT/bin/pbsim" ]]; then
+    cd "$ROOT/tools/pbsim2"
+    ./configure && make
+    cd "$ROOT"
+    cp "$ROOT/tools/pbsim2/src/pbsim" "$ROOT/bin/pbsim"
+else
+    echo "pbsim binary already present."
+fi
+if [[ ! -f "$ROOT/data/models/P6C4.model" ]]; then
+    cp "$ROOT/tools/pbsim2/data/P6C4.model" "$ROOT/data/models"
+else
+    echo "Pbsim model already present"
+fi
 
 
 
@@ -99,21 +122,23 @@ echo "
 #####################
 
 "
-if [[ "$OSTYPE" == "darwin"* ]] #MacOs
-then
-    cd "$ROOT/tools/minimap2"
-    make
-    cd "$ROOT"
-    ln -s "$ROOT/tools/minimap2/minimap2" "$ROOT/bin"
-else #Linux
-    echo "Downloading minimap2 release"
-    cd "$ROOT/tools"
-    wget "https://github.com/lh3/minimap2/releases/download/v2.22/minimap2-2.22_x64-linux.tar.bz2"
-    tar -xjvf "minimap2-2.22_x64-linux.tar.bz2"
-    cd "$ROOT"
-    ln -s "$ROOT/tools/minimap2-2.22_x64-linux/minimap2" "$ROOT/bin"
+if [[ ! -f "$ROOT/bin/minimap2" ]]; then
+    if [[ "$OSTYPE" == "darwin"* ]]; then #MacOs
+        cd "$ROOT/tools/minimap2"
+        make
+        cd "$ROOT"
+        cp "$ROOT/tools/minimap2/minimap2" "$ROOT/bin"
+    else #Linux
+        echo "Downloading minimap2 release"
+        cd "$ROOT/tools"
+        wget "https://github.com/lh3/minimap2/releases/download/v2.22/minimap2-2.22_x64-linux.tar.bz2"
+        tar -xjvf "minimap2-2.22_x64-linux.tar.bz2"
+        cd "$ROOT"
+        cp "$ROOT/tools/minimap2-2.22_x64-linux/minimap2" "$ROOT/bin"
+    fi
+else
+    echo "minimap2 binary already present."
 fi
-
 
 
 echo "
@@ -123,30 +148,32 @@ echo "
 ######################
 
 "
-cd "$ROOT/tools/Winnowmap"
-if [[ "$OSTYPE" == "darwin"* ]] #MacOS
-then
-    if command -v gcc-10 &> /dev/null
-    then
-        GCC="gcc-10"
-        GPP="g++-10"
-    elif command -v gcc-11 &> /dev/null
-    then
-        GCC="gcc-11"
-        GPP="g++-11"
-    else
-        echo "You need at least gcc 10 to compile Winnowmap"
-        echo "Using Homebrew: brew install gcc@10"
-        exit 1
+if [[ ! -f "$ROOT/bin/winnowmap" || ! -f "$ROOT/bin/meryl" ]]; then
+    cd "$ROOT/tools/Winnowmap"
+    if [[ "$OSTYPE" == "darwin"* ]]; then #MacOS
+        if command -v gcc-10 &> /dev/null
+        then
+            GCC="gcc-10"
+            GPP="g++-10"
+        elif command -v gcc-11 &> /dev/null
+        then
+            GCC="gcc-11"
+            GPP="g++-11"
+        else
+            echo "You need at least gcc 10 to compile Winnowmap"
+            echo "Using Homebrew: brew install gcc@10"
+            exit 1
+        fi
+        make CC=$GCC CXX=$GPP
+    else #Linux
+        make
     fi
-    make CC=$GCC CXX=$GPP
-else #Linux
-    make
+    cd "$ROOT"
+    cp "$ROOT/tools/Winnowmap/bin/meryl" "$ROOT/bin/meryl"
+    cp "$ROOT/tools/Winnowmap/bin/winnowmap" "$ROOT/bin/winnowmap"
+else
+    echo "winnowmap and meryl binaries already present."
 fi
-cd "$ROOT"
-ln -s "$ROOT/tools/Winnowmap/bin/meryl" "$ROOT/bin/meryl"
-ln -s "$ROOT/tools/Winnowmap/bin/winnowmap" "$ROOT/bin/winnowmap"
-
 
 echo "
 
@@ -155,42 +182,60 @@ echo "
 ######################
 
 "
-if [[ "$OSTYPE" == "darwin"* ]]
-then
-    cd "$ROOT/tools/bedtools2"
-    make
-    cd "$ROOT"
-    ln -s "$ROOT/tools/bedtools2/bin/bedtools" "$ROOT/bin"
+if [[ ! -f "$ROOT/bin/bedtools" ]]; then
+    if [[ "$OSTYPE" == "darwin"* ]]; then #MacOS
+        cd "$ROOT/tools/bedtools2"
+        make
+        cd "$ROOT"
+        cp "$ROOT/tools/bedtools2/bin/bedtools" "$ROOT/bin"
+    else #Linux
+        echo "Downloading bedtools release"
+        cd "$ROOT/tools"
+        wget "https://github.com/arq5x/bedtools2/releases/download/v2.30.0/bedtools.static.binary"
+        chmod +x "bedtools.static.binary"
+        cd "$ROOT"
+        cp "$ROOT/tools/bedtools.static.binary" "$ROOT/bin/bedtools"
+    fi
 else
-    echo "Downloading bedtools release"
-    cd "$ROOT/tools"
-    wget "https://github.com/arq5x/bedtools2/releases/download/v2.30.0/bedtools.static.binary"
-    chmod +x "bedtools.static.binary"
-    cd "$ROOT"
-    ln -s "$ROOT/tools/bedtools.static.binary" "$ROOT/bin/bedtools"
+    echo "bedtools binary already present."
 fi
-
 
 echo "
 
 #############################
-# Setting up Go executables #
+# Setting up reduce_sequences #
 #############################
 
 "
-# Setup rename_sequences and reduce_sequences
-if [[ "$OSTYPE" == "darwin"* ]] #MacOS
-then
-    echo "Extracting MacOS reduce and rename binaries"
-    xz -cdk "$ROOT/tools/reduce_sequences/bin/macos_amd64.xz" > "$ROOT/bin/reduce_sequences"
-    xz -cdk "$ROOT/tools/rename_sequences/bin/macos_amd64.xz" > "$ROOT/bin/rename_sequences"
-else #Linux
-    echo "Extracting Linux reduce and rename binaries"
-    xz -cdk "$ROOT/tools/reduce_sequences/bin/linux_amd64.xz" > "$ROOT/bin/reduce_sequences"
-    xz -cdk "$ROOT/tools/rename_sequences/bin/linux_amd64.xz" > "$ROOT/bin/rename_sequences"
+if [[ ! -f "$ROOT/bin/reduce_sequences" ]]; then
+    if [[ "$OSTYPE" == "darwin"* ]]; then #MacOS
+        xz -cdk "$ROOT/tools/reduce_sequences/bin/macos_amd64.xz" > "$ROOT/bin/reduce_sequences"
+    else #Linux
+        xz -cdk "$ROOT/tools/reduce_sequences/bin/linux_amd64.xz" > "$ROOT/bin/reduce_sequences"
+    fi
+    chmod +x "$ROOT/bin/reduce_sequences"
+else
+    echo "reduce_sequences binary already present."
 fi
-chmod +x "$ROOT/bin/reduce_sequences"
-chmod +x "$ROOT/bin/rename_sequences"
+
+echo "
+
+#############################
+# Setting up rename_sequences #
+#############################
+
+"
+if [[ ! -f "$ROOT/bin/rename_sequences" ]]; then
+    if [[ "$OSTYPE" == "darwin"* ]]; then #MacOS
+        xz -cdk "$ROOT/tools/rename_sequences/bin/macos_amd64.xz" > "$ROOT/bin/rename_sequences"
+    else #Linux
+        xz -cdk "$ROOT/tools/rename_sequences/bin/linux_amd64.xz" > "$ROOT/bin/rename_sequences"
+    fi
+    chmod +x "$ROOT/bin/rename_sequences"
+else
+    echo "rename_sequences binary already present."
+    echo ""
+fi
 
 
 echo "Succesfully initialized pipeline environment!"
