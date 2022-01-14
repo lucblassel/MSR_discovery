@@ -2,6 +2,45 @@
 import os
 import json
 
+RAW = {
+    "AA": "A",
+    "AC": "C",
+    "AG": "G",
+    "AT": "T",
+    "CA": "A",
+    "CC": "C",
+    "CG": "G",
+    "CT": "T",
+    "GA": "A",
+    "GC": "C",
+    "GG": "G",
+    "GT": "T",
+    "TA": "A",
+    "TC": "C",
+    "TG": "G",
+    "TT": "T",
+}
+
+HPC = {
+    "AA": ".",
+    "AC": "C",
+    "AG": "G",
+    "AT": "T",
+    "CA": "A",
+    "CC": ".",
+    "CG": "G",
+    "CT": "T",
+    "GA": "A",
+    "GC": "C",
+    "GG": ".",
+    "GT": "T",
+    "TA": "A",
+    "TC": "C",
+    "TG": "G",
+    "TT": ".",
+}
+
+
 def partitionK(collection, minimum, k):
     """
     Generates all partitions in collection between sizes minimum and k
@@ -45,7 +84,7 @@ def getOutputs(k, deletions=False):
     Generate output configuration for k outputs (with or without deletion)
     """
     if k > 4 and not deletions:
-       return []
+        return []
     if k > 5:
         raise ValueError("k must be <= 5")
 
@@ -77,7 +116,9 @@ def completeFunction(partialFunction):
     """
 
     if len(partialFunction) != 6:
-        raise ValueError(f"Partial mapping must be of length 6 (got {len(partialFunction)})")
+        raise ValueError(
+            f"Partial mapping must be of length 6 (got {len(partialFunction)})"
+        )
 
     finalFunction = dict()
     for k, v in partialFunction.items():
@@ -109,7 +150,9 @@ if __name__ == "__main__":
                     continue
                 configurations = getOutputs(nOut, deletion)
                 for j, config in enumerate(configurations):
-                    func = completeFunction({k: v for ks, v in zip(mapping, config) for k in ks})
+                    func = completeFunction(
+                        {k: v for ks, v in zip(mapping, config) for k in ks}
+                    )
                     json.dump(
                         func,
                         open(
@@ -122,4 +165,7 @@ if __name__ == "__main__":
                     )
                     funcCounter += 1
 
-    print(f"Saved {funcCounter} functions to disk")
+    json.dump(RAW, open(os.path.join(args.output, "raw.json"), "w"))
+    json.dump(HPC, open(os.path.join(args.output, "homopolymerCompression.json"), "w"))
+
+    print(f"Saved {funcCounter + 2} functions to disk")
