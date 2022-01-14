@@ -22,3 +22,6 @@
 [submodule "tools/fastatools"]
 	path = tools/fastatools
 	url = git@github.com:lucblassel/fastatools.git
+[submodule "tools/bedtools2"]
+	path = tools/bedtools2
+	url = git@github.com:arq5x/bedtools2.git
