@@ -1,0 +1,6 @@
+data/*
+
+# Ignore buildable executables
+bin/*
+!bin/makeAllUniqueFunctions.py
+!bin/paftoolsCustom.js
