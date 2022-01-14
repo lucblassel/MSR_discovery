@@ -90,7 +90,7 @@ It will download and setup prebuilt binaries for:
 - Bedtools on Linux
 - Go reduce_sequences and rename_sequences on MacOS/Linux
 
-If you specify the `--data` flag it will also download the reference datasets used in the analysis to the correct directories for the pipelines to work.
+If you specify the `--data` flag it will also download the reference datasets used in the analysis to the correct directories, and pre-process it for the pipelines to work.
 
 # Tools used in the HPC project
 

@@ -6,6 +6,62 @@ ROOT=$(pwd)
 # Making needed directories
 mkdir -p data/models
 
+if [[ "$#" -gt 0 ]]
+then
+    
+    if [[ "$#" -gt 1 ]]
+    then
+        echo "
+This script either runs without an argument, or with the --data flag.
+You supplied $# arguments.
+        "
+        exit 1;
+    fi
+    
+    if [[ "$1" != "--data" ]]
+    then
+        echo "Unknown argument $1"
+        exit 1;
+    fi
+    
+    echo "
+
+####################
+# Downloading data #
+####################
+
+    "
+    mkdir -p "$ROOT/temp_data" && cd "$ROOT/temp_data"
+    
+    echo "Downloading data files"
+    # Whole CHM13 genome
+    wget "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/009/914/755/GCA_009914755.3_CHM13_T2T_v1.1/GCA_009914755.3_CHM13_T2T_v1.1_genomic.fna.gz"
+    
+    # Drosophila genome
+    wget "https://obj.umiacs.umd.edu/marbl_publications/hicanu/dmel_hifi_40x.fasta.gz"#reads
+    wget "http://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.35_FB2020_04/fasta/dmel-all-chromosome-r6.35.fasta.gz"
+    
+    # Preprocessing data
+    echo "Pre-Processing Whole human genome"
+    gunzip -c "./GCA_009914755.3_CHM13_T2T_v1.1_genomic.fna.gz" | \
+    "$ROOT/tools/fastatools/fastatools" upper | \
+    "$ROOT/tools/fastatools/fastatools" rename --regex '\.[0-9] Homo.*' > \
+    "$ROOT/data/whole_human_genome.fa"
+    
+    echo "Pre-processing drosophila genome"
+    gunzip -c "dmel-all-chromosome-r6.35.fasta.gz" | \
+    "$ROOT/tools/fastatools/fastatools" subset -s 1 -e 7 > \
+    "$ROOT/data/whole_drosophila_genome.fa"
+    
+    mv "dmel_hifi_40x.fasta.gz" "$ROOT/data/real_drosophila_reads.fa"
+    
+    # Move tandemtools genome
+    cp "$ROOT/tools/TandemTools/test_data/simulated_del.fasta" "$ROOT/data/tandemtools.ref.fa"
+    
+    cd "$ROOT" && rm -rf "$ROOT/temp_data"
+fi
+
+exit 0
 
 echo "
 
