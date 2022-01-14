@@ -52,6 +52,7 @@ This process is done for each possible combination of:
   - winnowmap
 
 Each possible mapping is evaluated using the `mapeval` command in our fork of `paftools.js`.  
+Additionaly, a mapping is evaluated on a subset of reads that are mapped to repeated regions of the genome.
 A single `.csv` file with all the evaluation is produced and can be used to generate plots and tables.
 
 ### Plotting and Tables
@@ -81,10 +82,12 @@ The [init.sh](./init.sh) script will set up the tools before you run the pipelin
 - Winnowmap on MacOS/Linux
 - PBSim on MacOS/Linux
 - Minimap2 on MacOS
+- Bedtools on MacOS
 
 It will download and setup prebuilt binaries for:
 
 - Minimap2 on Linux
+- Bedtools on Linux
 - Go reduce_sequences and rename_sequences on MacOS/Linux
 
 If you specify the `--data` flag it will also download the reference datasets used in the analysis to the correct directories for the pipelines to work.
