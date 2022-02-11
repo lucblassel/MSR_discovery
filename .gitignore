@@ -1,6 +1,18 @@
-data/*
+data/
 
 # Ignore buildable executables
-bin/*
-!bin/makeAllUniqueFunctions.py
-!bin/paftoolsCustom.js
+bin/bedtools
+bin/minimap2
+bin/reduce_sequences
+bin/nanosim.py
+bin/rename_sequences
+bin/samtools
+bin/meryl
+bin/pbsim
+bin/winnowmap
+bin/bigBedToBed
+
+# Nextflow stuff
+.nextflow*
+.nextflow/
+work/

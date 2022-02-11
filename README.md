@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This is the repository linked to [title of publication (TODO)](https://lucblassel.com/publications).  
+This is the repository linked to the ["Mapping-friendly sequence reductions: going beyond homopolymer compression"]() paper.  
 It contains the necessary pipelines, tools and information in order to rerun the analyses performed during the project as well as explore this subject further.
 
 ## Quick start
@@ -76,6 +76,7 @@ We have made the choice of including all the tools used in this project as git s
 - result file manipulation:
   - our custom fork of paftools
   - bedtools
+  - bigBedToBed
 
 The [init.sh](./init.sh) script will set up the tools before you run the pipeline, it currently only supports amd64 architectures on Linux and MacOS. It will build:
 
@@ -149,12 +150,7 @@ If you specify the `--data` flag it will also download the reference datasets us
 
 ### repeats
 
-- [ ] [repeat masker](https://www.repeatmasker.org/genomes/hg38/RepeatMasker-rm405-db20140131/hg38.fa.out.gz) _(HG38 - Dec 2013 - RepeatMasker open-4.0.5 - Repeat Library 20140131)_
-
-### real datasets
-
-- [ ] HG002 Nanopore
-- [ ] HG002 PacBio
+- [x] [repeat masker](https://t2t.gi.ucsc.edu/chm13/hub/t2t-chm13-v1.1/rmsk/rmsk.bigBed) _(CHM13 v1.1)_
 
 # Pipelines & script
 

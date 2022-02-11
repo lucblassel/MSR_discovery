@@ -45,7 +45,7 @@ You supplied $# arguments.
     fi
     
     if [[ ! -f "$ROOT/data/real_drosophila_reads.fa" ]]; then
-        wget "https://obj.umiacs.umd.edu/marbl_publications/hicanu/dmel_hifi_40x.fasta.gz"#reads
+        wget "https://obj.umiacs.umd.edu/marbl_publications/hicanu/dmel_hifi_40x.fasta.gz"
         mv "dmel_hifi_40x.fasta.gz" "$ROOT/data/real_drosophila_reads.fa"
     else
         echo "Real Drosophila reads already downloaded."
@@ -65,6 +65,13 @@ You supplied $# arguments.
         cp "$ROOT/tools/TandemTools/test_data/simulated_del.fasta" "$ROOT/data/tandemtools.ref.fa"
     else
         echo "Already processed simulated centromeric sequence."
+    fi
+    
+    if [[ ! -f "$ROOT/data/chm13.repeats.bigBed" ]]; then
+        wget "https://t2t.gi.ucsc.edu/chm13/hub/t2t-chm13-v1.1/rmsk/rmsk.bigBed"
+        mv "rmsk.bigBed" "$ROOT/data/chm13.repeats.bigBed"
+    else
+        echo "Already processed RepeatMasker track"
     fi
     
     cd "$ROOT" && rm -rf "$ROOT/temp_data"
@@ -143,6 +150,27 @@ fi
 
 echo "
 
+#####################
+# Building Samtools #
+#####################
+
+"
+if [[ ! -f "$ROOT/bin/samtools" ]]; then
+    cd "$ROOT/tools"
+    wget "https://github.com/samtools/samtools/releases/download/1.12/samtools-1.12.tar.bz2"
+    tar -xjvf "samtools-1.12.tar.bz2"
+    cd "samtools-1.12"
+    autoheader
+    autoconf -Wno-syntax
+    ./configure
+    make
+    cp samtools "$ROOT/bin/samtools"
+else
+    echo "samtools binary already present."
+fi
+
+echo "
+
 ######################
 # Building Winnowmap #
 ######################
@@ -177,9 +205,9 @@ fi
 
 echo "
 
-######################
+#####################
 # Building Bedtools #
-######################
+#####################
 
 "
 if [[ ! -f "$ROOT/bin/bedtools" ]]; then
@@ -202,9 +230,9 @@ fi
 
 echo "
 
-#############################
+###############################
 # Setting up reduce_sequences #
-#############################
+###############################
 
 "
 if [[ ! -f "$ROOT/bin/reduce_sequences" ]]; then
@@ -220,9 +248,9 @@ fi
 
 echo "
 
-#############################
+###############################
 # Setting up rename_sequences #
-#############################
+###############################
 
 "
 if [[ ! -f "$ROOT/bin/rename_sequences" ]]; then
@@ -237,5 +265,20 @@ else
     echo ""
 fi
 
+echo "
+
+##########################
+# Setting up bigBedToBed #
+##########################
+
+"
+if [[ ! -f "$ROOT/bin/bigBedToBed" ]]; then
+    wget "https://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/bigBedToBed"
+    chmod +x "bigBedToBed"
+    mv "bigBedToBed" "$ROOT/bin/bigBedToBed"
+else
+    echo "bigBedToBed is already present"
+    echo ""
+fi
 
 echo "Succesfully initialized pipeline environment!"
