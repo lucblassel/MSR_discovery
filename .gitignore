@@ -12,6 +12,11 @@ bin/pbsim
 bin/winnowmap
 bin/bigBedToBed
 
+# Rmarkdown build stuff
+figures.html
+figures_cache
+figures_files
+
 # Nextflow stuff
 .nextflow*
 .nextflow/
