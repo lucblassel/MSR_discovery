@@ -130,12 +130,12 @@ echo "
 
 "
 if [[ ! -f "$ROOT/bin/minimap2" ]]; then
-    if [[ "$OSTYPE" == "darwin"* ]]; then #MacOs
+    if [[ "$OSTYPE" == "darwin"* ]]; then # MacOs
         cd "$ROOT/tools/minimap2"
         make
         cd "$ROOT"
         cp "$ROOT/tools/minimap2/minimap2" "$ROOT/bin"
-    else #Linux
+    else # Linux
         echo "Downloading minimap2 release"
         cd "$ROOT/tools"
         wget "https://github.com/lh3/minimap2/releases/download/v2.22/minimap2-2.22_x64-linux.tar.bz2"
@@ -178,7 +178,7 @@ echo "
 "
 if [[ ! -f "$ROOT/bin/winnowmap" || ! -f "$ROOT/bin/meryl" ]]; then
     cd "$ROOT/tools/Winnowmap"
-    if [[ "$OSTYPE" == "darwin"* ]]; then #MacOS
+    if [[ "$OSTYPE" == "darwin"* ]]; then # MacOS
         if command -v gcc-10 &> /dev/null
         then
             GCC="gcc-10"
@@ -193,7 +193,7 @@ if [[ ! -f "$ROOT/bin/winnowmap" || ! -f "$ROOT/bin/meryl" ]]; then
             exit 1
         fi
         make CC=$GCC CXX=$GPP
-    else #Linux
+    else # Linux
         make
     fi
     cd "$ROOT"
@@ -211,12 +211,12 @@ echo "
 
 "
 if [[ ! -f "$ROOT/bin/bedtools" ]]; then
-    if [[ "$OSTYPE" == "darwin"* ]]; then #MacOS
+    if [[ "$OSTYPE" == "darwin"* ]]; then # MacOS
         cd "$ROOT/tools/bedtools2"
         make
         cd "$ROOT"
         cp "$ROOT/tools/bedtools2/bin/bedtools" "$ROOT/bin"
-    else #Linux
+    else # Linux
         echo "Downloading bedtools release"
         cd "$ROOT/tools"
         wget "https://github.com/arq5x/bedtools2/releases/download/v2.30.0/bedtools.static.binary"
@@ -236,9 +236,9 @@ echo "
 
 "
 if [[ ! -f "$ROOT/bin/reduce_sequences" ]]; then
-    if [[ "$OSTYPE" == "darwin"* ]]; then #MacOS
+    if [[ "$OSTYPE" == "darwin"* ]]; then # MacOS
         xz -cdk "$ROOT/tools/reduce_sequences/bin/macos_amd64.xz" > "$ROOT/bin/reduce_sequences"
-    else #Linux
+    else # Linux
         xz -cdk "$ROOT/tools/reduce_sequences/bin/linux_amd64.xz" > "$ROOT/bin/reduce_sequences"
     fi
     chmod +x "$ROOT/bin/reduce_sequences"
@@ -254,9 +254,9 @@ echo "
 
 "
 if [[ ! -f "$ROOT/bin/rename_sequences" ]]; then
-    if [[ "$OSTYPE" == "darwin"* ]]; then #MacOS
+    if [[ "$OSTYPE" == "darwin"* ]]; then # MacOS
         xz -cdk "$ROOT/tools/rename_sequences/bin/macos_amd64.xz" > "$ROOT/bin/rename_sequences"
-    else #Linux
+    else # Linux
         xz -cdk "$ROOT/tools/rename_sequences/bin/linux_amd64.xz" > "$ROOT/bin/rename_sequences"
     fi
     chmod +x "$ROOT/bin/rename_sequences"
@@ -273,7 +273,11 @@ echo "
 
 "
 if [[ ! -f "$ROOT/bin/bigBedToBed" ]]; then
-    wget "https://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/bigBedToBed"
+    if [[ "$OSTYPE" == "darwin"* ]]; then # MacOS
+        wget "https://hgdownload.soe.ucsc.edu/admin/exe/macOSX.x86_64/bigBedToBed"
+    else # Linux
+        wget "https://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/bigBedToBed"
+    fi
     chmod +x "bigBedToBed"
     mv "bigBedToBed" "$ROOT/bin/bigBedToBed"
 else
