@@ -25,3 +25,4 @@ figures_files
 .nextflow*
 .nextflow/
 work/
+nextflow.config
