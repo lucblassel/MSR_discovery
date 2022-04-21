@@ -100,6 +100,11 @@ def main():
             dest = os.path.join(dest_dir, f"{msr}.json")
             os.symlink(src, dest)
 
+        with open(os.path.join(dest_dir, "best.txt"), "w") as file:
+            file.write(
+                f"MSR_e\t{MSRs_e[-1]}\n" f"MSR_f\t{MSR_f}\n" f"MSR_p\t{MSRs_p[-1]}\n"
+            )
+
     else:
         with open("msrs.json", "w") as file:
             json.dump(
