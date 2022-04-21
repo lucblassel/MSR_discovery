@@ -1,4 +1,4 @@
-resDir = file("data/results/")
+resDir = file("results/")
 
 coverage = 0.1 // PBSim setting
 number_of_reads = 35000 // NanoSim setting
@@ -219,7 +219,7 @@ process select_MSRs {
 
     echo "{\"nanosim\":\$N_COUNT, \"pbsim\":\$P_COUNT}" > nreads.json
 
-    mapevalGatherer.py --files eval* --nreads nreads.json --output evaluation.csv
+    mapevalGatherer.py --files eval* --nreads nreads.json --output evaluation.csv --unzipped
     """
 
 }

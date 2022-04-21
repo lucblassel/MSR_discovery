@@ -1,4 +1,6 @@
+# input and output directories
 data/
+results/
 
 # Ignore buildable executables
 bin/bedtools
