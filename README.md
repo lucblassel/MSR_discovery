@@ -27,16 +27,30 @@ You will need the following dependencies available on your system in order to ru
 
 ## Pipelines
 
-All the pipelines are implemented in [NextFlow](https://www.nextflow.io). You can run them by using: `nextflow run <pipeline-name>`.
+All the pipelines are implemented in [NextFlow](https://www.nextflow.io). You can run them by using: `nextflow run <pipeline-name>`.  
+A sample config file [`nextflow.config`](./nextflow.config) is available for you to fill out and adapt to your HPC environment. 
 
-### MSR Selection [TODO]
+### SSR evaluation
+```shell
+nextflow run msr_selection.nf -resume
+```
+This pipeline executes the following steps: 
+  - generate all SSRs as described in the paper and saves them to the `data/SSRs` directory
+  - evaluate each SSR using simulated reads and saves the resulting mapping `paf` file and `mapeval` ouput file to the `results/SSR_eval/[SSR]` directory
+  - generate a gathered `csv` file of `mapeval` outputs for all evaluated SSRs in the `results/SSR_eval/evaluations.csv` file. 
 
-This pipeline generate all the unique MSRs _(as described in the paper)_ and evaluated each of them on a low coverage human genome simulated dataset.  
-The 10 best MSRs w.r.t error rate and 10 best w.r.t number of reads mapped are selected for further analysis and are used as input for further pipelines.
-
+Using this file you can select the top MSRs using the following command: 
+```shell
+bin/selectMSRs.py \
+  --csv results/SSR_eval/evaluations.csv \
+  --top 20 \
+  --dir data/SSRs/
+```
+This will perform the selection method described in the paper and a subdirectory in the `data/SSRs` directory called `MSRs` with symbolic links to the relevant SSR `json` files. It will also create a text file which lists the best MSR in each selection category.  
+If the `--dir` flag is not specified this script will create a `json` file in the current directory listing the selected MSRs as well as the best in each category. 
 ### MSR In depth evaluation [TODO]
 
-The previously selected MSRs are evaluated on a wider range of use cases.  
+The previously selected MSRs in `data/SSRs/MSRs` are evaluated on a wider range of use cases.  
 For a given reference, a set of reads is simulated with a coverage of approximately 1.5. The reads and reference are transformed with each MSR, then the transformed reads are mapped to transformed reference. The resulting mapping is then evaluated.  
 This process is done for each possible combination of:
 
