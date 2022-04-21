@@ -1,4 +1,5 @@
-resDir = file("results/")
+ssrDir = file("data/SSRs")
+resDir = file("results/SSR_eval")
 
 coverage = 0.1 // PBSim setting
 number_of_reads = 35000 // NanoSim setting
@@ -9,7 +10,7 @@ pbsim_model = file("data/models/P6C4.model")
 nanosim_model = file("data/models/human_NA12878_DNA_FAB49712_guppy_flipflop/training")
 
 process make_MSRs {
-    publishDir "$resDir/MSRs", mode: "copy"
+    publishDir "$ssrDir", mode: "copy"
     output:
     file "*.json" into msrs
 
