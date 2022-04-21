@@ -142,6 +142,7 @@ if [[ ! -f "$ROOT/bin/minimap2" ]]; then
         tar -xjvf "minimap2-2.22_x64-linux.tar.bz2"
         cd "$ROOT"
         cp "$ROOT/tools/minimap2-2.22_x64-linux/minimap2" "$ROOT/bin"
+        rm "minimap2-2.22_x64-linux.tar.bz2"
     fi
 else
     echo "minimap2 binary already present."
@@ -162,9 +163,10 @@ if [[ ! -f "$ROOT/bin/samtools" ]]; then
     cd "samtools-1.12"
     autoheader
     autoconf -Wno-syntax
-    ./configure
+    ./configure --without-curses --disable-lzma
     make
     cp samtools "$ROOT/bin/samtools"
+    rm "samtools-1.12.tar.bz2"
 else
     echo "samtools binary already present."
 fi

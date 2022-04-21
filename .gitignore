@@ -12,6 +12,10 @@ bin/pbsim
 bin/winnowmap
 bin/bigBedToBed
 
+# Ignore extracted files during init.sh execution
+tools/minimap2-2.22_x64*/
+tools/samtools-1.12*/
+
 # Rmarkdown build stuff
 figures.html
 figures_cache
