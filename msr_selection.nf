@@ -9,7 +9,7 @@ pbsim_model = file("data/models/P6C4.model")
 nanosim_model = file("data/models/human_NA12878_DNA_FAB49712_guppy_flipflop/training")
 
 process make_MSRs {
-    publishDir "$resDir/MSRs", mode: "link"
+    publishDir "$resDir/MSRs", mode: "copy"
     output:
     file "*.json" into msrs
 
@@ -47,7 +47,7 @@ process nanosim {
 
 process pbsim {
     output:
-    tuple, val("pbsim"), file("pbsim.fa") into pbsim
+    tuple val("pbsim"), file("pbsim.fa") into pbsim
 
     memory 20.GB
     cpus 16
@@ -60,9 +60,11 @@ process pbsim {
     """
 }
 
-msrs.into{ msrs_reference; msrs_reads }
+msrs
+    .flatMap()
+    .into{ msrs_reference; msrs_reads }
 
-process reduce_reference { 
+process reduce_reference {
     input:
     file msr from msrs_reference
 
@@ -106,16 +108,22 @@ process index_reference {
     memory 30.GB
     cpus 16
 
+    errorStrategy {task.exitStatus == 143 ? "retry": "ignore"}
+    maxRetries 10
+
     script:
     k = (simulator == "pbsim") ? 19 : 15
     """
     echo "${simulator}, ${msr}"
-    minimap2 -k ${k} - 16 -d reference.idx ${reduced_reference}
+    minimap2 -k ${k} -t 16 -d reference.idx ${reduced_reference}
     """
 }
 
-nanosim
-    .concat(pbsim)
+nanosim.into{ nanosim_count; nanosim_map}
+pbsim.into{ pbsim_count; pbsim_map}
+
+nanosim_map
+    .concat(pbsim_map)
     .splitFasta(by: 2000, file: true, elem: 1)
     .set{ read_chunks }
 
@@ -135,26 +143,28 @@ process map_reads {
     tuple val(simulator), val(msr), file(index), file(msr_file), file(offset), file(reads) from mapper_input
 
     output:
-    tuple val(msr), val(simulator), file("chunk.paf.gz") intro mappings
+    tuple val(msr), val(simulator), file("chunk.paf.gz") into mappings
 
     memory 20.GB
     cpus 16
     time "20m"
 
+    errorStrategy {task.exitStatus == 143 ? "retry": "ignore"}
+
     script:
-    k = (sim == "pbsim") ? 19 : 15
+    k = (simulator == "pbsim") ? 19 : 15
     """
     set -o pipefail
     echo "${msr}, ${simulator}"
 
-    if [[ ${red} != "raw" ]]; then
+    if [[ ${msr} != "raw" ]]; then
         # Reduce reads
-        reduce_reads \
+        reduce_sequences \
             -reduction ${msr_file} \
             -sequences ${reads} \
             -output reduced.fa \
             -threads 16
-        rename_reads \
+        rename_sequences \
             -sequences reduced.fa \
             -offsetsPath ${offset} \
             -output renamed.fa
@@ -172,20 +182,44 @@ process eval_mapping {
     input:
     tuple val(msr), val(simulator), file("chunk") from mappings.groupTuple(by: [0, 1])
 
-    publishDir "$resDir/${msr}", mode: "link"
+    publishDir "$resDir/${msr}", mode: "copy"
     output:
-    file "${simulator}.${mapper}.paf.gz"
-    file "${simulator}.${mapper}.acc"
+    file "${simulator}.paf.gz"
+    file "${simulator}.acc" into mapevals
 
     script:
     """
     cat chunk* > mapping.paf.gz
-    echo "${msr}, ${simulator}, minimap" > ${simulator}.${mapper}.acc
-    paftoolsCustom.js mapeval mapping.paf.gz >> ${simulator}.${mapper}.acc
-    mv mapping.paf.gz ${simulator}.${mapper}.paf.gz
+    echo "${msr}, ${simulator}, minimap" > ${simulator}.acc
+    paftoolsCustom.js mapeval mapping.paf.gz >> ${simulator}.acc
+    mv mapping.paf.gz ${simulator}.paf.gz
     """
 }
 
-// process select_MSRs {
+process select_MSRs {
 
-// }
+    conda "pandas tqdm", useMamba: true
+
+    input:
+    file "eval" from mapevals
+    file "nanosim.fa" from nanosim_count
+    file "pbsim.fa" from pbsim_count
+
+    publishDir "$resDir", mode: "copy"
+    output:
+    file "evaluation.csv"
+
+    cpus 1
+    memory 5.GB
+
+    script:
+    """
+    N_COUNT=\$(fastatools count -i nanosim.fa)
+    P_COUNT=\$fastatools count -i pbsim.fa)
+
+    echo "{\"nanosim\":\$N_COUNT, \"pbsim\":\$P_COUNT}" > nreads.json
+
+    mapevalGatherer.py --files eval* --nreads nreads.json --output evaluation.csv
+    """
+
+}
