@@ -58,6 +58,7 @@ This process is done for each possible combination of:
   - T2T CHM13 v1.1 whole human genome reference
   - TandemTools simulated centromeric reference
   - Whole Drosophila _melanogaster_ reference
+  - Whole Escherischia _coli_ reference
 - Simulator:
   - NanoSim with R94 model
   - PBSim with P6C4 model

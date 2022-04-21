@@ -8,7 +8,7 @@ mkdir -p data/models
 
 if [[ "$#" -gt 0 ]]
 then
-    
+
     if [[ "$#" -gt 1 ]]
     then
         echo "
@@ -17,13 +17,13 @@ You supplied $# arguments.
         "
         exit 1;
     fi
-    
+
     if [[ "$1" != "--data" ]]
     then
         echo "Unknown argument $1"
         exit 1;
     fi
-    
+
     echo "
 
 ####################
@@ -32,7 +32,7 @@ You supplied $# arguments.
 
     "
     mkdir -p "$ROOT/temp_data" && cd "$ROOT/temp_data"
-    
+
     if [[ ! -f "$ROOT/data/whole_human_genome.fa" ]]; then
         wget "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/009/914/755/GCA_009914755.3_CHM13_T2T_v1.1/GCA_009914755.3_CHM13_T2T_v1.1_genomic.fna.gz"
         echo "Pre-Processing Whole human genome"
@@ -43,14 +43,14 @@ You supplied $# arguments.
     else
         echo "Reference Human genome already downloaded and processed."
     fi
-    
+
     if [[ ! -f "$ROOT/data/real_drosophila_reads.fa" ]]; then
         wget "https://obj.umiacs.umd.edu/marbl_publications/hicanu/dmel_hifi_40x.fasta.gz"
         mv "dmel_hifi_40x.fasta.gz" "$ROOT/data/real_drosophila_reads.fa"
     else
         echo "Real Drosophila reads already downloaded."
     fi
-    
+
     if [[ ! -f "$ROOT/data/whole_drosophila_genome.fa" ]]; then
         wget "http://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.35_FB2020_04/fasta/dmel-all-chromosome-r6.35.fasta.gz"
         echo "Pre-processing drosophila genome"
@@ -60,20 +60,28 @@ You supplied $# arguments.
     else
         echo "Reference Drosophila genome already downloaded and processed."
     fi
-    
+
+    if [[ ! -f "$ROOT/data/whole_ecoli_genome.fa" ]]; then
+       wget "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi/?db=nucleotide&id=U00096.2&retmode=text&rettype=fasta" -O "genome.fa"
+       fastatools rename -r "\.2.*genome" -s " " -i "genome.fa" > "$ROOT/data/whole_ecoli_genome.fa"
+       rm "genome.fa"
+    else
+        echo "Reference E. coli genome already downloaded"
+    fi
+
     if [[ ! -f "$ROOT/data/tandemtools.ref.fa" ]]; then
         cp "$ROOT/tools/TandemTools/test_data/simulated_del.fasta" "$ROOT/data/tandemtools.ref.fa"
     else
         echo "Already processed simulated centromeric sequence."
     fi
-    
+
     if [[ ! -f "$ROOT/data/chm13.repeats.bigBed" ]]; then
         wget "https://t2t.gi.ucsc.edu/chm13/hub/t2t-chm13-v1.1/rmsk/rmsk.bigBed"
         mv "rmsk.bigBed" "$ROOT/data/chm13.repeats.bigBed"
     else
         echo "Already processed RepeatMasker track"
     fi
-    
+
     cd "$ROOT" && rm -rf "$ROOT/temp_data"
 fi
 
