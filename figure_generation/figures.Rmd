@@ -142,11 +142,11 @@ fmt_perc <- function(num) {
   }
   if (num >= 0) {
     return(
-      paste0("+", format(num, digits=0, width=3, justify="right"), "%")
+      paste0("+", format(num, digits=1, width=3, justify="right"), "%")
     )
   }
   return (
-    paste0(format(num, digits=0, width=3, justify="right"), "%")
+    paste0(format(num, digits=1, width=3, justify="right"), "%")
   )
 }
 
@@ -238,7 +238,7 @@ p <- ggplot(data=background, aes(x=fracReads, y=cumErrorRate, group=renamed, col
   annotation_logticks(sides="l", size=0.2, long=unit(2, "mm"), mid=unit(1, "mm"), short=unit(.5, "mm")) +
   scale_color_manual(values=colors, limits=colour_levels) +
   guides(color=guide_legend(title="Function\ntype:")) +
-  labs(x="Fraction of reads mapped", y="Cumulative mapeval error rate") +
+  labs(x="Fraction of reads mapped", y="Mismapped rate") +
   facet_wrap_custom(~ dataset, scale="free", labeller=labeller(dataset=labels), scale_overrides = list(
     scale_override(3, scale_x_continuous(limits=c(0.90, 1.0))),
     scale_override(3, scale_y_continuous(trans="log10", limits=c(1e-4, 1e-1))),
@@ -246,7 +246,7 @@ p <- ggplot(data=background, aes(x=fracReads, y=cumErrorRate, group=renamed, col
     scale_override(2, scale_x_continuous(limits=c(0.5, 1.0))),
     scale_override(2, scale_y_continuous(trans="log10", limits=c(1e-5, 1e-1)))
   ))
-ggsave("./figures/figure5.svg", plot=p, height=3.5, width=10, units=c("in"))
+ggsave("./figures/figure5.pdf", plot=p, height=3.5, width=10, units=c("in"))
 p
 ```
 
@@ -669,14 +669,14 @@ p <- ggplot(data=background, aes(x=fracReads, y=cumErrorRate, group=renamed, col
   annotation_logticks(sides="l", size=0.2, long=unit(2, "mm"), mid=unit(1, "mm"), short=unit(.5, "mm")) +
   scale_color_manual(values=colors, limits=colour_levels) +
   guides(color=guide_legend(title="Function\ntype:")) +
-  labs(x="Fraction of reads mapped", y="Cumulative mapeval error rate") +
+  labs(x="Fraction of reads mapped", y="Mismapped rate") +
   facet_wrap_custom(~ dataset, scale="free", labeller=labeller(dataset=labels), scale_overrides = list(
     scale_override(1, scale_x_continuous(limits=c(0.94, 1.0))),
     scale_override(2, scale_x_continuous(limits=c(0.99, 1.0))),
     scale_override(2, scale_y_continuous(trans="log10", limits=c(5e-4, 5e-3)))
   ))
 
-ggsave("./figures/figureE1.svg", plot=p, height=3.5, width=8, units=c("in"))
+ggsave("./figures/figureE1.pdf", plot=p, height=3.5, width=8, units=c("in"))
 
 p
 ```
