@@ -21,7 +21,6 @@ tools/samtools-1.12*/
 # Rmarkdown build stuff
 figures.html
 figures_cache
-figures_files
 .Rhistory
 
 # Nextflow stuff
