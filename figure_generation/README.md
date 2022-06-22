@@ -2668,6 +2668,7 @@ HPC
 case study on high mapq reads
 
 <img src="figures_files/figure-gfm/ridges_real-1.svg" width="100%" style="display: block; margin: auto;" />
+
 The “A” entry is destined to be removed and is needed to scale
 everything correctly between facets. To obtain the final version of the
 figure the “A” track is removed using Inkscape. The remaining facets are

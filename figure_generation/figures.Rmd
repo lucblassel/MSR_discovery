@@ -532,6 +532,7 @@ p_ridges <- ggplot(bind_rows(filter(total, !correct), g) %>% mutate(reduction_f=
 ggsave("./figures/figureC1.svg", p_ridges, device="svg", width=7, height=6, units="in")
 p_ridges
 ```
+
 The "A" entry is destined to be removed and is needed to scale everything correctly between facets. To obtain the final version of the figure the "A" track is removed using Inkscape. The remaining facets are then moved closer to each other to avoid large gaps between facets. The post-modification version of this plot can be seen [here](./figures/figureC1.adapted.pdf).
 
 ## Figures D.1 to D.5 {.tabset}
