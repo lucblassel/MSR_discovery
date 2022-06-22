@@ -22,9 +22,13 @@ tools/samtools-1.12*/
 figures.html
 figures_cache
 figures_files
+.Rhistory
 
 # Nextflow stuff
 .nextflow*
 .nextflow/
 work/
 nextflow.config
+
+# VScode
+.vscode/
