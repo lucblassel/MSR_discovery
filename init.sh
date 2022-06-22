@@ -34,7 +34,7 @@ You supplied $# arguments.
     mkdir -p "$ROOT/temp_data" && cd "$ROOT/temp_data"
 
     if [[ ! -f "$ROOT/data/whole_human_genome.fa" ]]; then
-        wget "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/009/914/755/GCA_009914755.3_CHM13_T2T_v1.1/GCA_009914755.3_CHM13_T2T_v1.1_genomic.fna.gz"
+        wget "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/009/914/755/GCA_009914755.3_T2T-CHM13v1.1/GCA_009914755.3_T2T-CHM13v1.1_genomic.fna.gz"
         echo "Pre-Processing Whole human genome"
         gunzip -c "./GCA_009914755.3_CHM13_T2T_v1.1_genomic.fna.gz" | \
         "$ROOT/tools/fastatools/fastatools" upper | \
