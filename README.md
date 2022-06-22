@@ -72,7 +72,7 @@ A single `.csv` file with all the evaluation is produced and can be used to gene
 
 ### Plotting and Tables
 
-All the necessary result data as well as an R-markdown file are available in the `figure_generation` directory. With this you should be able to reproduce all the figures and tables used in the article (both in the main text and supplementary material).
+All the necessary result data as well as an [R-markdown file](./figure_generation/figures.Rmd) are available in the [`figure_generation`](./figure_generation/) directory. With this you should be able to reproduce all the figures and tables used in the article (both in the main text and supplementary material).
 
 ## Included tools
 

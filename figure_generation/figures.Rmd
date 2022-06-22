@@ -4,6 +4,11 @@ author: "Luc Blassel, Paul Medvedev & Rayan Chikhi"
 date: "`r format(Sys.Date(), '%b %d %Y')`"
 always_allow_html: true
 output:
+  github_document:
+    toc: true
+    toc_depth: 2
+  md_document:
+    toc: true
   html_document: 
     toc: true
     theme: paper
@@ -11,7 +16,7 @@ output:
 
 ```{r, knitr_setup, include=FALSE}
 library(knitr)
-knitr::opts_chunk$set(message=FALSE, info=FALSE, warning=FALSE)
+knitr::opts_chunk$set(message=FALSE, info=FALSE, warning=FALSE, cache=TRUE)
 ```
 
 This notebook was used to generate the table and figures used in the MSR paper *([DOI](placeholder))*.
@@ -30,7 +35,7 @@ library(pafr)
 library(rjson)
 library(ggridges)
 
-# Setting general theme options
+# Setting general theme options 
 ggplot2::theme_set(ggplot2::theme_classic())
 ggplot2::theme_update(
   strip.text=element_text(size=12, hjust=0, vjust=1),
@@ -169,20 +174,29 @@ evals <- read.csv("./data/MSR-evals.csv") %>%
 
 # Main text
 ## Figure 1 
-Figure 1 was made by hand using inkscape
-![Figure1](figures/figure1.svg)
+
+| ![Figure 1](figures/figure1.svg) |
+|:--:|
+| Figure 1 was made by hand using inkscape. |
 
 ## Figure 2
-Figure 2 was made by hand using inkscape
-![Figure2](figures/figure2.svg)
+
+| ![Figure 2](figures/figure2.svg) |
+|:--:|
+| Figure 2 was made by hand using inkscape. |
 
 ## Figure 3 
-Figure 3 is a modified version of panel A of figure 5. It was modified with inkscape  
-![Figure3](figures/figure3.svg)
+ 
+| ![Figure 3](figures/figure3.svg) |
+|:--:|
+| Figure 3 is a modified version of panel A of figure 5. It was modified with inkscape. |
+
 
 ## Figure 4
-Figure 4 was made by hand using inkscape
-![Figure4](figures/figure4.svg)
+
+| ![Figure 4](figures/figure4.svg) |
+|:--:|
+| Figure 4 was made by hand using inkscape. |
 
 ## Figure 5
 
@@ -358,6 +372,8 @@ mapping_msr_p <- parse_processed("./data/case_study/msr_p.processed.tab", "MSR P
 mapping_msr_e <- parse_processed("./data/case_study/msr_e.processed.tab", "MSR E", namesDic)
 mapping_msr_f <- parse_processed("./data/case_study/msr_f.processed.tab", "MSR F", namesDic)
 ```
+Centromere and stalk positions were obtained from the following file: 
+<http://t2t.gi.ucsc.edu/chm13/hub/t2t-chm13-v1.1/cytobands/cytoBandIdeo.bigBed>
 
 ```{r, centromeres_positions}
 centromeres <- tribble(
