@@ -521,14 +521,13 @@
   <text
      xml:space="preserve"
      style="font-weight:bold;font-size:12px;line-height:1.25;font-family:'Fira Code';-inkscape-font-specification:'Fira Code, Bold';stroke-width:0.75"
-     x="-141.02184"
+     x="-142.43686"
      y="13.418995"
      id="text31184"
      transform="rotate(-90)"><tspan
        sodipodi:role="line"
        id="tspan31182"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12px;font-family:Arial;-inkscape-font-specification:Arial;stroke-width:0.75"
-       x="-141.02184"
-       y="13.418995"
-       dx="4.9863467">mismapped rate</tspan></text>
+       x="-142.43686"
+       y="13.418995">Mapping error rate</tspan></text>
 </svg>

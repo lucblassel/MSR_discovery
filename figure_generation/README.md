@@ -23,7 +23,7 @@ Jun 22 2022
     -   [Figures D.1 to D.5](#figures-d1-to-d5)
     -   [Figure E.1](#figure-e1)
 
-[This notebook](./figures.Rmd) was used to generate the table and figures used in the MSR
+This notebook was used to generate the table and figures used in the MSR
 paper *([DOI](placeholder))*.
 
 # Setup
@@ -207,119 +207,9 @@ evals <- read.csv("./data/MSR-evals.csv") %>%
 
 ## Figure 5
 
-``` r
-facet_order <- c("whole_genome","whole_genome_repeats", "tandemtools")
-
-default <- filter(evals, dataset != "drosophila" & dataset != "ecoli" & mapper=="minimap" & simulator=="nanosim" ) %>%
-  mutate(dataset=factor(dataset, levels=facet_order))
-
-# Position and label of MSR annotations in panels 
-annotations <- data.frame(
-  renamed = c("MSR E", "MSR F2", "MSR P", "MSR E", "MSR F2", "MSR P", "MSR E", "MSR F2", "MSR P"),
-  dataset = c("tandemtools", "tandemtools", "tandemtools", 
-              "whole_genome", "whole_genome", "whole_genome", 
-              "whole_genome_repeats", "whole_genome_repeats", "whole_genome_repeats"),
-  label = c("MSR[E]", "MSR[F]", "MSR[P]", 
-            "MSR[E]", "MSR[F]", "MSR[P]", 
-            "MSR[E]", "MSR[F]", "MSR[P]"),
-  x = c(0.925 , 0.935 , 0.915, 
-        0.95  , 0.9275, 0.927, 
-        0.75  , 0.6   , 0.63 ),
-  y = c(4.5e-3, 2.5e-3, 1.5e-3, 
-        5e-5  , 8e-4  , 2e-4  , 
-        1e-4  , 1.6e-4, 7e-5  )
-) %>%
-  mutate(dataset=factor(dataset, levels=facet_order))
-
-# Facet labels
-labels <- c(
-  whole_genome="A)\tWhole human genome", 
-  tandemtools="C)\tSynthetic centromeric\nsequence", 
-  whole_genome_repeats="B)\tWhole human genome\n(repeated regions)"
-)
-
-background <- filter(default, !(MSR %in% to_show))
-background_points <- filter(background, threshold %in% point_thresholds)
-
-showed <- filter(default, MSR %in% to_show)
-showed_points <- filter(showed, threshold %in% point_thresholds)
-
-top <- filter(default, MSR %in% c("HPC", "raw"))
-top_points <- filter(top, threshold %in% point_thresholds)
-
-p <- ggplot(data=background, aes(x=fracReads, y=cumErrorRate, group=renamed, colour=col)) + 
-  geom_line() + 
-  geom_point(data=background_points) +
-  geom_line(data=showed) +
-  geom_point(data=showed_points) + 
-  geom_line(data=top) + 
-  geom_point(data=top_points) +
-  geom_text(data=annotations, aes(x=x, y=y, label=label, hjust=1, fontface="bold.italic"), size=3.5, colour="black", parse=TRUE) +
-  scale_y_continuous(trans="log10", limits=c(1e-6, 1e-1)) +
-  annotation_logticks(sides="l", size=0.2, long=unit(2, "mm"), mid=unit(1, "mm"), short=unit(.5, "mm")) +
-  scale_color_manual(values=colors, limits=colour_levels) +
-  guides(color=guide_legend(title="Function\ntype:")) +
-  labs(x="Fraction of reads mapped", y="Mismapped rate") +
-  facet_wrap_custom(~ dataset, scale="free", labeller=labeller(dataset=labels), scale_overrides = list(
-    scale_override(3, scale_x_continuous(limits=c(0.90, 1.0))),
-    scale_override(3, scale_y_continuous(trans="log10", limits=c(1e-4, 1e-1))),
-    scale_override(1, scale_x_continuous(limits=c(0.90, 1.0))),
-    scale_override(2, scale_x_continuous(limits=c(0.5, 1.0))),
-    scale_override(2, scale_y_continuous(trans="log10", limits=c(1e-5, 1e-1)))
-  ))
-ggsave("./figures/figure5.pdf", plot=p, height=3.5, width=10, units=c("in"))
-p
-```
-
 <img src="figures_files/figure-gfm/plot_custom_reordered, , -1.png" style="display: block; margin: auto;" />
 
 ## Table 1
-
-``` r
-to_show <- c("MSR_E", "MSR_F", "MSR_P")
-
-tab <- evals %>%
-  filter(
-    (simulator == "nanosim") & (
-      (dataset == "whole_genome") |
-      ((dataset == "drosophila") & (mapper=="minimap"))
-    )
-  ) %>%
-  filter((MSR %in% c("HPC", "raw") & (threshold == 60)) | 
-           ((MSR %in% to_show) & (threshold == 50))) %>%
-  select(dataset, threshold, MSR, fracReads, cumErrorRate, mapper) %>%
-  pivot_wider(names_from=c(dataset, mapper), values_from=c(fracReads, cumErrorRate), names_sep=".") %>%
-  rename(
-    t=threshold, 
-    fDM=fracReads.drosophila.minimap, fWM=fracReads.whole_genome.minimap, fWW=fracReads.whole_genome.winnowmap,
-    eDM=cumErrorRate.drosophila.minimap, eWM=cumErrorRate.whole_genome.minimap, eWW=cumErrorRate.whole_genome.winnowmap,
-  )
-
-cols <- c("fDM", "fWM", "fWW", "eDM", "eWM", "eWW")
-
-hpc <- tab %>%
-  filter((MSR == "HPC") & (t==60)) %>%
-  slice(rep(1,5))
-perc <- (100*(tab[,cols] - hpc[,cols]) / hpc[,cols]) %>%
-  rename_with(.fn = ~paste0("P", .x) )
-
-to_format <- bind_cols(tab, perc) %>%
-  mutate(across(c("fDM", "fWM", "fWW"), format, digits=3)) %>%
-  mutate(across(c("eDM", "eWM", "eWW"), format, digits=3, scientific=TRUE)) %>%
-  mutate(across(c("PfDM", "PfWM", "PfWW", "PeDM", "PeWM", "PeWW"), fmt_vec)) %>%
-  relocate(
-    MSR, t,
-    fWM, PfWM, eWM, PeWM,
-    fWW, PfWW, eWW, PeWW,
-    fDM, PfDM, eDM, PeDM,
-  )
-
-kbl(to_format, booktabs=TRUE) %>%
-  kable_styling() %>%
-  add_header_above(c(" "=2, "Frac"=2, "Err"=2, "Frac"=2, "Err"=2, "Frac"=2, "Err"=2)) %>%
-  add_header_above(c(" "=2, "minimap2"=4, "winnowmap"=4, "minimap2"=4))  %>%
-  add_header_above(c(" "=2, "Whole HG"=4, "Whole HG"=4, "Droso"=4)) 
-```
 
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <thead>
@@ -832,57 +722,6 @@ reduction_order <- c("A", "MSR F2", "MSR P", "MSR E", "HPC", "raw")
 ```
 
 ## Table B.1
-
-``` r
-to_show <- c("MSR_E", "MSR_F", "MSR_P", "raw", "HPC")
-
-tab <- evals %>%
-  filter(
-    (simulator == "nanosim") & 
-    (dataset != "ecoli") &
-    (threshold %in% c(60, 50, 0)) & 
-    (MSR %in% to_show)
-  ) %>%
-  select(dataset, threshold, MSR, fracReads, cumErrorRate, mapper) %>%
-  pivot_wider(names_from=threshold, values_from=c(fracReads, cumErrorRate), names_sep=".") %>%
-  rename(d=dataset, m=mapper, f60=fracReads.60, e60=cumErrorRate.60, f50=fracReads.50, e50=cumErrorRate.50, f0=fracReads.0, e0=cumErrorRate.0) %>%
-  arrange(d, m, MSR)
-
-cols <- c("f60", "f50", "f0", "e60", "e50", "e0")
-
-hpc <- tab %>%
-  filter((MSR == "HPC")) %>%
-  arrange(d, m) %>%
-  slice(rep(1:n(),each=5))
-
-perc <- (100*(tab[,cols] - hpc[,cols]) / hpc[,cols]) %>%
-  rename_with(.fn = ~paste0("P", .x) )
-
-
-to_format <- bind_cols(tab, perc) %>%
-  mutate(across(c("f60", "f50", "f0"), format, digits=3)) %>%
-  mutate(across(c("e60", "e50", "e0"), format, digits=3, scientific=TRUE)) %>%
-  mutate(across(c("Pf60", "Pf50", "Pf0", "Pe60", "Pe50", "Pe0"), fmt_vec)) %>%
-  relocate(
-    d, m, MSR,
-    f60, Pf60, e60, Pe60,
-    f50, Pf50, e50, Pe50,
-    f0, Pf0, e0, Pe0,
-  )
-
-kbl(to_format %>% select(-one_of(c("d", "m"))), booktabs=TRUE) %>%
-  kable_styling() %>%
-  add_header_above(c(" "=1, "fraction"=2, "error"=2, "fraction"=2, "error"=2, "fraction"=2, "error"=2)) %>%
-  add_header_above(c(" "=1, "mapq=60"=4, "mapq>=50"=4, "any mapq"=4)) %>%
-  pack_rows("Drosophila - minimap", 1, 5) %>%
-  pack_rows("Drosophila - winnowmap", 6, 10) %>%
-  pack_rows("Tandemtools - minimap", 11, 15) %>%
-  pack_rows("Tandemtools - winnowmap", 16, 20) %>%
-  pack_rows("Whole Human genome - minimap", 21, 25) %>%
-  pack_rows("Whole Human genome - winnowmap", 26, 30) %>%
-  pack_rows("Whole Human genome (repeated regions) - minimap", 31, 35) %>%
-  pack_rows("Whole Human genome (repeated regions) - winnowmap", 36, 40)
-```
 
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <thead>
@@ -2828,69 +2667,14 @@ HPC
 
 case study on high mapq reads
 
-``` r
-chromosomes <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "X")
-
-g <- tribble(
-  ~reduction, ~rstart, ~rend, ~tstart, ~tend, ~chromosome,
-  "A", 1, 1, 1, 1, chromosomes[1],
-  "A", 1, 1, 1, 1, chromosomes[1],
-  "A", 1, 1, 1, 1, chromosomes[1],
-  "A", 1, 1, 1, 1, chromosomes[1],
-  "A", 1, 1, 1, 1, chromosomes[1],
-)
-
-for (chr in chromosomes[2:length(chromosomes)]) {
-  t <- tribble(
-  ~reduction, ~rstart, ~rend, ~tstart, ~tend, ~chromosome,
-  "A", 1, 1, 1, 1, chr,
-  "A", 1, 1, 1, 1, chr,
-  "A", 1, 1, 1, 1, chr,
-  "A", 1, 1, 1, 1, chr,
-  "A", 1, 1, 1, 1, chr,
-)
-  g <- bind_rows(g, t)
-}
-```
-
-``` r
-total <- bind_rows(
-  filter(mapping_raw, mapq==60),
-  filter(mapping_hpc, mapq==60),
-  filter(mapping_msr_p, mapq>=50),
-  filter(mapping_msr_e, mapq>=50),
-  filter(mapping_msr_f, mapq>=50),
-)
-
-reduction_order <- c("A", "MSR P", "MSR E", "MSR F", "HPC", "raw")
-
-p_ridges <- ggplot(bind_rows(filter(total, !correct), g) %>% mutate(reduction_f=factor(reduction, levels=reduction_order)), aes(x=rstart, y=reduction_f, fill=reduction, colour=reduction, height=..count..)) +
-  geom_rect(data=centromeres, mapping=aes(xmin=start, xmax=end, ymin=0, ymax=Inf, x=NULL, y=NULL, height=NULL, colour=NULL), fill="grey60", alpha=0.5) +
-  geom_rect(data=stalks, mapping=aes(xmin=start, xmax=end, ymin=0, ymax=Inf, x=NULL, y=NULL, height=NULL, colour=NULL), fill="grey80", alpha=0.5) +
-  geom_density_ridges(stat="binline", scale=0.8, bins=100, size=0.1) +
-  xlim(1, NA) +
-  facet_wrap( . ~ factor(chromosome, levels=order), scale="free_x") + 
-  labs(x="Origin of incorrectly mapped reads on chromosome", y="Numbe of reads") +
-  theme_ridges(grid=FALSE, center_axis_labels=TRUE) +
-  theme(
-    legend.position="none", 
-    axis.text.x=element_blank(), 
-    axis.text.x.bottom=element_blank(), 
-    axis.ticks.x=element_blank(),
-    strip.background=element_rect(fill="white", color="grey60", linetype=1, s=0.5),
-    strip.text=element_text(size=10, margin=margin(t=2, r=1, b=2, l=1, unit="pt")), 
-    axis.text.y=element_text(size=10),
-    panel.spacing=unit(1, "mm")
-    )
-ggsave("./figures/figureC1.svg", p_ridges, device="svg", width=7, height=6, units="in")
-p_ridges
-```
-
 <img src="figures_files/figure-gfm/ridges_real-1.svg" width="100%" style="display: block; margin: auto;" />
+
 The “A” entry is destined to be removed and is needed to scale
 everything correctly between facets. To obtain the final version of the
-figure the “A” track is removed using inkscape. The remaining facets are
-then moved closer to each other to avoid large gaps between facets.
+figure the “A” track is removed using Inkscape. The remaining facets are
+then moved closer to each other to avoid large gaps between facets. The
+post-modification version of this plot can be seen
+[here](./figures/figureC1.adapted.pdf).
 
 ## Figures D.1 to D.5
 
@@ -2898,175 +2682,24 @@ case study on all reads
 
 ### Figure D.1 (Raw)
 
-``` r
-p_raw <- ggplot(mapping_raw, aes(x=rstart, after_stat(density), fill=correct)) +
-  geom_rect(data=centromeres, mapping=aes(xmin=start, xmax=end, ymin=0, ymax=Inf, x=NULL, y=NULL), fill="grey60", alpha=0.7) +
-  geom_rect(data=stalks, mapping=aes(xmin=start, xmax=end, ymin=0, ymax=Inf, x=NULL, y=NULL), fill="grey95", alpha=0.7) +
-  geom_histogram(bins=100) +
-  facet_wrap( . ~ factor(chromosome, levels=order), scale="free_x") +
-  labs(x="original starting position of simulated read", y="density of reads") +
-  theme_ridges(grid=FALSE, center_axis_labels=TRUE) +
-  theme(
-    legend.position="none", 
-    axis.text.x.bottom=element_blank(),
-    axis.text.y.left=element_blank(),
-    axis.ticks.x=element_blank(),
-    strip.background=element_rect(fill="white", color="grey60", linetype=1, s=0.5),
-    strip.text=element_text(size=10, margin=margin(t=2, r=1, b=2, l=1, unit="pt")), 
-    axis.text.y=element_text(size=10),
-    panel.spacing=unit(1, "mm")
-    )
-ggsave("./figures/figureD1.pdf", p_raw, device="pdf", width=7, height=6, units="in")
-p_raw
-```
-
 <img src="figures_files/figure-gfm/sup_mat_raw-1.svg" width="100%" style="display: block; margin: auto;" />
 
 ### Figure D.2 (HPC)
-
-``` r
-p_hpc <- ggplot(mapping_hpc, aes(x=rstart, after_stat(density), fill=correct)) +
-  geom_rect(data=centromeres, mapping=aes(xmin=start, xmax=end, ymin=0, ymax=Inf, x=NULL, y=NULL), fill="grey60", alpha=0.7) +
-  geom_rect(data=stalks, mapping=aes(xmin=start, xmax=end, ymin=0, ymax=Inf, x=NULL, y=NULL), fill="grey95", alpha=0.7) +
-  geom_histogram(bins=100) +
-  facet_wrap( . ~ factor(chromosome, levels=order), scale="free_x") +
-  labs(x="original starting position of simulated read", y="density of reads") +
-  theme_ridges(grid=FALSE, center_axis_labels=TRUE) +
-  theme(
-    legend.position="none", 
-    axis.text.x.bottom=element_blank(),
-    axis.text.y.left=element_blank(),
-    axis.ticks.x=element_blank(),
-    strip.background=element_rect(fill="white", color="grey60", linetype=1, s=0.5),
-    strip.text=element_text(size=10, margin=margin(t=2, r=1, b=2, l=1, unit="pt")), 
-    axis.text.y=element_text(size=10),
-    panel.spacing=unit(1, "mm")
-    )
-ggsave("./figures/figureD2.pdf", p_hpc, device="pdf", width=7, height=6, units="in")
-p_hpc
-```
 
 <img src="figures_files/figure-gfm/sup_mat_hpc-1.svg" width="100%" style="display: block; margin: auto;" />
 
 ### Figure D.3 (MSR E)
 
-``` r
-p_msre <- ggplot(mapping_msr_e, aes(x=rstart, after_stat(density), fill=correct)) +
-  geom_rect(data=centromeres, mapping=aes(xmin=start, xmax=end, ymin=0, ymax=Inf, x=NULL, y=NULL), fill="grey60", alpha=0.7) +
-  geom_rect(data=stalks, mapping=aes(xmin=start, xmax=end, ymin=0, ymax=Inf, x=NULL, y=NULL), fill="grey95", alpha=0.7) +
-  geom_histogram(bins=100) +
-  facet_wrap( . ~ factor(chromosome, levels=order), scale="free_x") +
-  labs(x="original starting position of simulated read", y="density of reads") +
-  theme_ridges(grid=FALSE, center_axis_labels=TRUE) +
-  theme(
-    legend.position="none", 
-    axis.text.x.bottom=element_blank(),
-    axis.text.y.left=element_blank(),
-    axis.ticks.x=element_blank(),
-    strip.background=element_rect(fill="white", color="grey60", linetype=1, s=0.5),
-    strip.text=element_text(size=10, margin=margin(t=2, r=1, b=2, l=1, unit="pt")), 
-    axis.text.y=element_text(size=10),
-    panel.spacing=unit(1, "mm")
-    )
-ggsave("./figures/figureD3.pdf", p_msre, device="pdf", width=7, height=6, units="in")
-p_msre
-```
-
 <img src="figures_files/figure-gfm/sup_mat_msre-1.svg" width="100%" style="display: block; margin: auto;" />
 
 ### Figure D.4 (MSR P)
-
-``` r
-p_msrp <- ggplot(mapping_msr_p, aes(x=rstart, after_stat(density), fill=correct)) +
-  geom_rect(data=centromeres, mapping=aes(xmin=start, xmax=end, ymin=0, ymax=Inf, x=NULL, y=NULL), fill="grey60", alpha=0.7) +
-  geom_rect(data=stalks, mapping=aes(xmin=start, xmax=end, ymin=0, ymax=Inf, x=NULL, y=NULL), fill="grey95", alpha=0.7) +
-  geom_histogram(bins=100) +
-  facet_wrap( . ~ factor(chromosome, levels=order), scale="free_x") +
-  labs(x="original starting position of simulated read", y="density of reads") +
-  theme_ridges(grid=FALSE, center_axis_labels=TRUE) +
-  theme(
-    legend.position="none", 
-    axis.text.x.bottom=element_blank(),
-    axis.text.y.left=element_blank(),
-    axis.ticks.x=element_blank(),
-    strip.background=element_rect(fill="white", color="grey60", linetype=1, s=0.5),
-    strip.text=element_text(size=10, margin=margin(t=2, r=1, b=2, l=1, unit="pt")), 
-    axis.text.y=element_text(size=10),
-    panel.spacing=unit(1, "mm")
-    )
-ggsave("./figures/figureD4.pdf", p_msrp, device="pdf", width=7, height=6, units="in")
-p_msrp
-```
 
 <img src="figures_files/figure-gfm/sup_mat_msrp-1.svg" width="100%" style="display: block; margin: auto;" />
 
 ### Figure D.5 (MSR F)
 
-``` r
-p_msrf <- ggplot(mapping_msr_f, aes(x=rstart, after_stat(density), fill=correct)) +
-  geom_rect(data=centromeres, mapping=aes(xmin=start, xmax=end, ymin=0, ymax=Inf, x=NULL, y=NULL), fill="grey60", alpha=0.7) +
-  geom_rect(data=stalks, mapping=aes(xmin=start, xmax=end, ymin=0, ymax=Inf, x=NULL, y=NULL), fill="grey95", alpha=0.7) +
-  geom_histogram(bins=100) +
-  facet_wrap( . ~ factor(chromosome, levels=order), scale="free_x") +
-  labs(x="original starting position of simulated read", y="density of reads") +
-  theme_ridges(grid=FALSE, center_axis_labels=TRUE) +
-  theme(
-    legend.position="none", 
-    axis.text.x.bottom=element_blank(),
-    axis.text.y.left=element_blank(),
-    axis.ticks.x=element_blank(),
-    strip.background=element_rect(fill="white", color="grey60", linetype=1, s=0.5),
-    strip.text=element_text(size=10, margin=margin(t=2, r=1, b=2, l=1, unit="pt")), 
-    axis.text.y=element_text(size=10),
-    panel.spacing=unit(1, "mm")
-    )
-ggsave("./figures/figureD5.pdf", p_msrf, device="pdf", width=7, height=6, units="in")
-p_msrf
-```
-
 <img src="figures_files/figure-gfm/sup_mat_msrf-1.svg" width="100%" style="display: block; margin: auto;" />
 
 ## Figure E.1
-
-``` r
-# Facet labels
-labels <- c(
-  drosophila="A)\tWhole Drosophila genome", 
-  ecoli="B)\tWhole E. coli genome"
-)
-
-default <- filter(evals, (dataset %in% c("drosophila", "ecoli")) & mapper=="minimap" & simulator=="nanosim" )
-
-background <- filter(default, !(MSR %in% to_show))
-background_points <- filter(background, threshold %in% point_thresholds)
-
-showed <- filter(default, MSR %in% to_show)
-showed_points <- filter(showed, threshold %in% point_thresholds)
-
-top <- filter(default, MSR %in% c("HPC", "raw"))
-top_points <- filter(top, threshold %in% point_thresholds)
-
-p <- ggplot(data=background, aes(x=fracReads, y=cumErrorRate, group=renamed, colour=col)) + 
-  geom_line() + 
-  geom_point(data=background_points) +
-  geom_line(data=showed) +
-  geom_point(data=showed_points) + 
-  geom_line(data=top) + 
-  geom_point(data=top_points) +
-  scale_y_continuous(trans="log10", limits=c(1e-6, 1e-1)) +
-  annotation_logticks(sides="l", size=0.2, long=unit(2, "mm"), mid=unit(1, "mm"), short=unit(.5, "mm")) +
-  scale_color_manual(values=colors, limits=colour_levels) +
-  guides(color=guide_legend(title="Function\ntype:")) +
-  labs(x="Fraction of reads mapped", y="Mismapped rate") +
-  facet_wrap_custom(~ dataset, scale="free", labeller=labeller(dataset=labels), scale_overrides = list(
-    scale_override(1, scale_x_continuous(limits=c(0.94, 1.0))),
-    scale_override(2, scale_x_continuous(limits=c(0.99, 1.0))),
-    scale_override(2, scale_y_continuous(trans="log10", limits=c(5e-4, 5e-3)))
-  ))
-
-ggsave("./figures/figureE1.pdf", plot=p, height=3.5, width=8, units=c("in"))
-
-p
-```
 
 <img src="figures_files/figure-gfm/plot_drosophila_ecoli_nanosim-1.png" style="display: block; margin: auto;" />
