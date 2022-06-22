@@ -16,14 +16,14 @@ output:
 
 ```{r, knitr_setup, include=FALSE}
 library(knitr)
-knitr::opts_chunk$set(message=FALSE, info=FALSE, warning=FALSE)
+knitr::opts_chunk$set(message=FALSE, info=FALSE, warning=FALSE, echo=FALSE, cache=TRUE)
 ```
 
 This notebook was used to generate the table and figures used in the MSR paper *([DOI](placeholder))*.
 
 # Setup
 Necessary libraries and general settings
-```{r, setup}
+```{r, setup, echo=TRUE}
 
 library(readr)
 library(dplyr)
@@ -62,7 +62,7 @@ to_show <- c("MSR_E", "MSR_F", "MSR_P")
 
 ## Needed functions
 ### Custom Facet-wrapping
-```{r, scale_overriding}
+```{r, scale_overriding, echo=TRUE}
 
 ##########################
 # SCALE OVERRIDING UTILS #
@@ -140,7 +140,7 @@ facet_wrap_custom <- function(..., scale_overrides = NULL) {
 ```
 
 ### Table formatting functions
-```{r, table_format}
+```{r, table_format, echo=TRUE}
 fmt_perc <- function(num) {
   if (is.na(num)) {
     return ("NAN")
@@ -163,7 +163,7 @@ fmt_vec <- function(vec) {
 ```
 
 ## Data loading and pre-processing
-```{r, data_loading, }
+```{r, data_loading, echo=TRUE}
 
 evals <- read.csv("./data/MSR-evals.csv") %>%
     filter(!(renamed %in% to_reject)) %>%
@@ -315,7 +315,7 @@ kbl(to_format, booktabs=TRUE) %>%
 # Supplementary Material
 
 ## Additional functions for sup-mat
-```{r, supmat-functions}
+```{r, supmat-functions, echo=TRUE}
 
 get_overlap <- function(rend, tstart, rstart, tend) {
   
@@ -364,7 +364,7 @@ parse_processed <- function(filepath, funcName, names) {
 ```
 
 Data loading
-```{r, supmat-data-loading}
+```{r, supmat-data-loading, echo=TRUE}
 namesDic <- fromJSON(file="./data/case_study/names_chr.json")
 mapping_raw <- parse_processed("./data/case_study/raw.processed.tab", "raw", namesDic)
 mapping_hpc <- parse_processed("./data/case_study/hpc.processed.tab", "HPC", namesDic)
@@ -375,7 +375,7 @@ mapping_msr_f <- parse_processed("./data/case_study/msr_f.processed.tab", "MSR F
 Centromere and stalk positions were obtained from the following file: 
 <http://t2t.gi.ucsc.edu/chm13/hub/t2t-chm13-v1.1/cytobands/cytoBandIdeo.bigBed>
 
-```{r, centromeres_positions}
+```{r, centromeres_positions, echo=TRUE}
 centromeres <- tribble(
   ~chromosome, ~start, ~end,
   "1", 121796048, 126300487,
@@ -532,7 +532,7 @@ p_ridges <- ggplot(bind_rows(filter(total, !correct), g) %>% mutate(reduction_f=
 ggsave("./figures/figureC1.svg", p_ridges, device="svg", width=7, height=6, units="in")
 p_ridges
 ```
-The "A" entry is destined to be removed and is needed to scale everything correctly between facets. To obtain the final version of the figure the "A" track is removed using inkscape. The remaining facets are then moved closer to each other to avoid large gaps between facets. 
+The "A" entry is destined to be removed and is needed to scale everything correctly between facets. To obtain the final version of the figure the "A" track is removed using Inkscape. The remaining facets are then moved closer to each other to avoid large gaps between facets. The post-modification version of this plot can be seen [here](./figures/figureC1.adapted.pdf).
 
 ## Figures D.1 to D.5 {.tabset}
 
