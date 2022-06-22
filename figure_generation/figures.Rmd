@@ -16,7 +16,7 @@ output:
 
 ```{r, knitr_setup, include=FALSE}
 library(knitr)
-knitr::opts_chunk$set(message=FALSE, info=FALSE, warning=FALSE, cache=TRUE)
+knitr::opts_chunk$set(message=FALSE, info=FALSE, warning=FALSE)
 ```
 
 This notebook was used to generate the table and figures used in the MSR paper *([DOI](placeholder))*.
@@ -252,7 +252,7 @@ p <- ggplot(data=background, aes(x=fracReads, y=cumErrorRate, group=renamed, col
   annotation_logticks(sides="l", size=0.2, long=unit(2, "mm"), mid=unit(1, "mm"), short=unit(.5, "mm")) +
   scale_color_manual(values=colors, limits=colour_levels) +
   guides(color=guide_legend(title="Function\ntype:")) +
-  labs(x="Fraction of reads mapped", y="Mismapped rate") +
+  labs(x="Fraction of reads mapped", y="Mapping error rate") +
   facet_wrap_custom(~ dataset, scale="free", labeller=labeller(dataset=labels), scale_overrides = list(
     scale_override(3, scale_x_continuous(limits=c(0.90, 1.0))),
     scale_override(3, scale_y_continuous(trans="log10", limits=c(1e-4, 1e-1))),
@@ -685,7 +685,7 @@ p <- ggplot(data=background, aes(x=fracReads, y=cumErrorRate, group=renamed, col
   annotation_logticks(sides="l", size=0.2, long=unit(2, "mm"), mid=unit(1, "mm"), short=unit(.5, "mm")) +
   scale_color_manual(values=colors, limits=colour_levels) +
   guides(color=guide_legend(title="Function\ntype:")) +
-  labs(x="Fraction of reads mapped", y="Mismapped rate") +
+  labs(x="Fraction of reads mapped", y="Mapping error rate") +
   facet_wrap_custom(~ dataset, scale="free", labeller=labeller(dataset=labels), scale_overrides = list(
     scale_override(1, scale_x_continuous(limits=c(0.94, 1.0))),
     scale_override(2, scale_x_continuous(limits=c(0.99, 1.0))),
