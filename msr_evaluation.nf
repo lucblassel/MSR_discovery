@@ -10,8 +10,8 @@ mappers = Channel.from("minimap2", "winnowmap")
 simulators = Channel.from("pbsim", "nanosim")
 
 // Data
-repeats = file("./repeats/chm13.repeats.bigBed")
-MSRs = Channel.fromPath("./data/SSRs/MSRs/*2out*.json")
+repeatRegions = file("./data/chm13.repeats.renamed.bed")
+MSRs = Channel.fromPath("./data/SSRs/MSRs/*.json")
 
 // Models
 nanosimModel = file("./data/models/human_NA12878_DNA_FAB49712_guppy_flipflop/training")
@@ -19,11 +19,17 @@ pbsimModel = file("./data/models/P6C4.model")
 
 // Genomes
 // [organism, length, coverage, FASTA]
+//genomes = Channel.from
+//    ["human", 3500000000, 1.5, file("./data/whole_human_genome.fa")],
+//    ["centromere", 1014904, 100, file("./data/tandemtools.ref.fa")],
+//    ["drosophila", 137547960, 1.5, file("./data/whole_drosophila_genome.fa")],
+//    ["ecoli", 4639675, 50, file("./data/whole_ecoli_genome.fa")]
+//)
 genomes = Channel.from(
-    ["human", 3500000000, 1.5, file("./data/whole_human_genome.fa")],
-    ["centromere", 1014904, 100, file("./data/tandemtools.ref.fa")],
-    ["drosophila", 137547960, 1.5, file("./data/whole_drosophila_genome.fa")],
-    ["ecoli", 4639675, 50, file("./data/whole_ecoli_genome.fa")]
+    ["human", 3500000000, 0.5, file("./data/whole_human_genome.fa")],
+    ["centromere", 1014904, 10, file("./data/tandemtools.ref.fa")],
+    ["drosophila", 137547960, 0.5, file("./data/whole_drosophila_genome.fa")],
+    ["ecoli", 4639675, 10, file("./data/whole_ecoli_genome.fa")]
 )
 
 // Returns number of reads to simulate from coverage
@@ -59,7 +65,7 @@ genome_MSRs_prepare
 
     publishDir "$resDir/${organism}/reads/", mode: "copy"
     output:
-    tuple val("nanosim"), val(organism), file("nanosim.fa") into nanosim
+    tuple val("nanosim"), val(organism), file("nanosim.fa") into nanosim, nanosim_count
 
     memory 20.GB
     cpus 16
@@ -78,7 +84,7 @@ process pbsim {
 
     publishDir "$resDir/${organism}/reads/", mode: "copy"
     output:
-    tuple val("pbsim"), val(organism), file("pbsim.fa") into pbsim
+    tuple val("pbsim"), val(organism), file("pbsim.fa") into pbsim, pbsim_count
 
      memory 20.GB
      cpus 16
@@ -91,6 +97,38 @@ process pbsim {
     """
 }
 
+nanosim_count
+    .concat(pbsim_count)
+    .into{reads_counter; repeat_counter}
+
+process count_reads {
+    input:
+    tuple val(simulator), val(organism), file(reads) from reads_counter
+
+    output:
+    tuple val(simulator), val(organism), file("count.txt") into read_counts
+
+    script:
+    """
+    fastatools count -i ${reads} > count.txt
+    """
+}
+
+process count_repeats {
+    input:
+    tuple val(simulator), val(organism), file(reads) from repeat_counter.filter{ it[1] == "human" }
+
+    output:
+    tuple val(simulator), val(organism), file("count.txt") into repeat_counts
+
+    script:
+    """
+    cat ${reads} | fastatools names |\
+        awk 'BEGIN{FS="!";OFS="\\t"}{print \$2,\$3,\$4}' > reads.bed
+    bedtools intersect -wa -u -f 0.50 -a reads.bed -b $repeatRegions | wc -l > count.txt
+    rm reads.bed
+    """
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //////////                            REFERENCE MANIPULATION                           //////////
@@ -115,9 +153,9 @@ process reduceRef {
     """
     if [ ${msr.baseName} == "raw" ]; then
         cp ${reference} ref.fa
-        touch offsets.raw.json
+        touch offsets.json
     else
-        reduceDelete_linux_amd64 -reduction ${msr} -sequences ${reference} -output ref.fa -offsets offsets.json -threads 8
+        reduce_sequences -reduction ${msr} -sequences ${reference} -output ref.fa -offsets offsets.json -threads 8
     fi
     """
 }
@@ -229,10 +267,10 @@ process minimap {
 
     if [ "${msr}" != "raw" ]; then
         # Reduce Reads
-        reduceDelete_linux_amd64 -msr ${msr_f} -sequences ${reads} -output r.fa -threads 16
+        reduce_sequences -reduction ${msr_f} -sequences ${reads} -output r.fa -threads 16
 
         # Rename Reads
-        applyOffsets_linux_amd64 -sequences r.fa -offsetsPath ${offsets} -output renamed.fa
+        rename_sequences -sequences r.fa -offsetsPath ${offsets} -output renamed.fa
         rm r.fa
     else
         cp ${reads} renamed.fa
@@ -263,10 +301,10 @@ process winnowmap {
 
     if [ "${msr}" != "raw" ]; then
         # Reduce Reads
-        reduceDelete_linux_amd64 -msr ${msr_f} -sequences ${reads} -output r.fa -threads 16
+        reduce_sequences -reduction ${msr_f} -sequences ${reads} -output r.fa -threads 16
 
         # Rename Reads
-        applyOffsets_linux_amd64 -sequences r.fa -offsetsPath ${offsets} -output renamed.fa
+        rename_sequences -sequences r.fa -offsetsPath ${offsets} -output renamed.fa
         rm r.fa
     else
         cp ${reads} renamed.fa
@@ -286,41 +324,57 @@ process winnowmap {
 minimap //org,msr,sim,mapper,mapping_f
     .concat(winnowmap) //org,msr,sim,mapper,mapping_f
     .groupTuple(by:[0,1,2,3])
+    .map{ it -> [it[2], it[0], it[1], it[3], it[4]] } //sim,org,msr,mapper,mapping_f+
     .into{ mapeval_full; mapeval_repeat }
+
+mapeval_full
+    .combine(read_counts, by:[0,1]) //sim,org,msr,mapper,mapping_f+,count_f
+    .set{ mapeval_input }
 
 // Evaluate mappings
 process mapeval {
     input:
-    tuple val(organism), val(msr), val(simulator), val(mapper), file("chunk") from mapeval_full
+    tuple val(simulator), val(organism), val(msr), val(mapper), file("chunk"), file(counts) from mapeval_input
 
     publishDir "$resDir/${organism}/eval/${msr}", mode: "copy"
     output:
     file "${simulator}.${mapper}.paf.gz"
-    file "${simulator}.${mapper}.acc.gz"
+    file "${simulator}.${mapper}.acc.gz" into mapevals
 
     script:
     """
     cat chunk* > mapping.paf.gz
+    paftoolsCustom.js mapeval mapping.paf.gz > acc
+    COUNT=\$(cat ${counts})
 
-    echo "${organism}, ${msr}, ${simulator}, ${mapper}" > ${simulator}.${mapper}.acc
-    paftoolsCustom.js mapeval mapping.paf.gz >> ${simulator}.${mapper}.acc
+    formatMapeval.py \
+        --file acc \
+        --count \$COUNT \
+        --msr ${msr} \
+        --mapper ${mapper} \
+        --simulator ${simulator} \
+        --organism ${organism} > ${simulator}.${mapper}.acc
+
     gzip -9 ${simulator}.${mapper}.acc
     mv mapping.paf.gz ${simulator}.${mapper}.paf.gz
+
+    rm acc
     """
 }
 
-mapeval_repeat //org,msr,sim,mapper,[chunks_f]
-    .filter{ it[0] == "human" }
+mapeval_repeat //sim,org,msr,mapper,[chunks_f]
+    .filter{ it[1] == "human" }
+    .combine(repeat_counts, by:[0,1]) //sim,org,msr,mapper,[chunks_f],count_f
     .set{ repeats }
 
 // Evaluate mappings of reads in repeated regions of human genome
 process mapeval_repeats {
     input:
-    tuple val(organism), val(msr), val(simulator), val(mapper), file("chunk") from repeats
+    tuple val(simulator), val(organism), val(msr), val(mapper), file("chunk"), file(counts) from repeats
 
     publishDir "$resDir/${organism}/eval/${msr}/", mode: "copy"
     output:
-    file "${simulator}.${mapper}.repeats.acc.gz"
+    file "${simulator}.${mapper}.repeats.acc.gz" into mapevals_repeats
 
     script:
     """
@@ -329,26 +383,59 @@ process mapeval_repeats {
     paftools.js splice2bed mapping.paf.gz > mapping.bed
 
     # get reads with repeated region overlaps > 50%
-    bedtools intersect -wa -u -f 0.50 -a mapping.bed -b $repeats > intersection.bed
+    bedtools intersect -wa -u -f 0.50 -a mapping.bed -b $repeatRegions > intersection.bed
     cut -f 4 intersection.bed | uniq > read.names
 
-    # subset paf to keep reads in repeated regions
-    gunzip mapping.paf.gz
-    awk 'BEGIN{
-        while (getline < "'"read.names"'") {
-            select[\$0] = 1
-        }
-        close("'"read.names"'")
-    }{
-        if (select[\$1] == 1) {
-            print \$0
-        }
-    }' mapping.paf > selected.paf
-    echo "${organism}, ${msr}, ${simulator}, ${mapper}" > ${simulator}.${mapper}.repeats.acc
-    paftoolsCustom.js mapeval selected.paf >> ${simulator}.${mapper}.repeats.acc
+    if [[ -s read.names ]]; then
+        # subset paf to keep reads in repeated regions
+        gunzip mapping.paf.gz
+        awk 'BEGIN{
+            while (getline < "'"read.names"'") {
+                select[\$0] = 1
+            }
+            close("'"read.names"'")
+        }{
+            if (select[\$1] == 1) {
+                print \$0
+            }
+        }' mapping.paf > selected.paf
+
+        paftoolsCustom.js mapeval selected.paf > acc
+
+        COUNT=\$(cat ${counts})
+
+        formatMapeval.py \
+            --file acc \
+            --count \$COUNT \
+            --msr ${msr} \
+            --mapper ${mapper} \
+            --simulator ${simulator} \
+            --organism ${organism}_repeat > ${simulator}.${mapper}.repeats.acc
+
+        rm selected.paf mapping.paf acc
+    else
+        rm mapping.paf.gz
+        touch  ${simulator}.${mapper}.repeats.acc
+    fi
+
     gzip -9 ${simulator}.${mapper}.repeats.acc
 
     # cleaning up
-    rm mapping.bed mapping.paf intersection.bed read.names selected.paf
+    rm mapping.bed intersection.bed read.names
+    """
+}
+
+process collect_evals {
+    input:
+    file "mapeval" from mapevals.concat(mapevals_repeats).collect()
+
+    publishDir "$resDir", mode: "copy"
+    output:
+    file "evals.csv"
+
+    script:
+    """
+    echo "mapType\tthreshold\tnMapped\tnErrors\tcumErrorRate\tcumNum\tfracReads\ttype\trenamed\torganism\tsimulator\tmapper" > evals.csv
+    gunzip -c mapeval* >> evals.csv
     """
 }
