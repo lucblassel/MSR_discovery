@@ -24,6 +24,26 @@ You supplied $# arguments.
         exit 1;
     fi
 
+echo "
+
+##########################
+# Setting up bigBedToBed #
+##########################
+
+"
+if [[ ! -f "$ROOT/bin/bigBedToBed" ]]; then
+    if [[ "$OSTYPE" == "darwin"* ]]; then # MacOS
+        wget "https://hgdownload.soe.ucsc.edu/admin/exe/macOSX.x86_64/bigBedToBed"
+    else # Linux
+        wget "https://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/bigBedToBed"
+    fi
+    chmod +x "bigBedToBed"
+    mv "bigBedToBed" "$ROOT/bin/bigBedToBed"
+else
+    echo "bigBedToBed is already present"
+    echo ""
+fi
+
     echo "
 
 ####################
@@ -75,9 +95,9 @@ You supplied $# arguments.
         echo "Already processed simulated centromeric sequence."
     fi
 
-    if [[ ! -f "$ROOT/data/chm13.repeats.bigBed" ]]; then
+    if [[ ! -f "$ROOT/data/chm13.repeats.bed" ]]; then
         wget "https://t2t.gi.ucsc.edu/chm13/hub/t2t-chm13-v1.1/rmsk/rmsk.bigBed"
-        mv "rmsk.bigBed" "$ROOT/data/chm13.repeats.bigBed"
+        $ROOT/bin/bigBedToBed "rmsk.bigBed" "$ROOT/data/chm13.repeats.bed"
     else
         echo "Already processed RepeatMasker track"
     fi
@@ -275,24 +295,5 @@ else
     echo ""
 fi
 
-echo "
-
-##########################
-# Setting up bigBedToBed #
-##########################
-
-"
-if [[ ! -f "$ROOT/bin/bigBedToBed" ]]; then
-    if [[ "$OSTYPE" == "darwin"* ]]; then # MacOS
-        wget "https://hgdownload.soe.ucsc.edu/admin/exe/macOSX.x86_64/bigBedToBed"
-    else # Linux
-        wget "https://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/bigBedToBed"
-    fi
-    chmod +x "bigBedToBed"
-    mv "bigBedToBed" "$ROOT/bin/bigBedToBed"
-else
-    echo "bigBedToBed is already present"
-    echo ""
-fi
 
 echo "Succesfully initialized pipeline environment!"
