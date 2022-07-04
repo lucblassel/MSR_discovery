@@ -19,17 +19,11 @@ pbsimModel = file("./data/models/P6C4.model")
 
 // Genomes
 // [organism, length, coverage, FASTA]
-//genomes = Channel.from
-//    ["human", 3500000000, 1.5, file("./data/whole_human_genome.fa")],
-//    ["centromere", 1014904, 100, file("./data/tandemtools.ref.fa")],
-//    ["drosophila", 137547960, 1.5, file("./data/whole_drosophila_genome.fa")],
-//    ["ecoli", 4639675, 50, file("./data/whole_ecoli_genome.fa")]
-//)
 genomes = Channel.from(
-    ["human", 3500000000, 0.5, file("./data/whole_human_genome.fa")],
-    ["centromere", 1014904, 10, file("./data/tandemtools.ref.fa")],
-    ["drosophila", 137547960, 0.5, file("./data/whole_drosophila_genome.fa")],
-    ["ecoli", 4639675, 10, file("./data/whole_ecoli_genome.fa")]
+    ["human", 3500000000, 1.5, file("./data/whole_human_genome.fa")],
+    ["centromere", 1014904, 100, file("./data/tandemtools.ref.fa")],
+    ["drosophila", 137547960, 1.5, file("./data/whole_drosophila_genome.fa")],
+    ["ecoli", 4639675, 50, file("./data/whole_ecoli_genome.fa")]
 )
 
 // Returns number of reads to simulate from coverage
