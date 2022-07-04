@@ -121,9 +121,9 @@ if [[ ! -f "$ROOT/bin/minimap2" ]]; then
         cd "$ROOT/tools"
         wget "https://github.com/lh3/minimap2/releases/download/v2.22/minimap2-2.22_x64-linux.tar.bz2"
         tar -xjvf "minimap2-2.22_x64-linux.tar.bz2"
+        rm "minimap2-2.22_x64-linux.tar.bz2"
         cd "$ROOT"
         cp "$ROOT/tools/minimap2-2.22_x64-linux/minimap2" "$ROOT/bin"
-        rm "minimap2-2.22_x64-linux.tar.bz2"
     fi
 else
     echo "minimap2 binary already present."
@@ -141,13 +141,13 @@ if [[ ! -f "$ROOT/bin/samtools" ]]; then
     cd "$ROOT/tools"
     wget "https://github.com/samtools/samtools/releases/download/1.12/samtools-1.12.tar.bz2"
     tar -xjvf "samtools-1.12.tar.bz2"
+    rm "samtools-1.12.tar.bz2"
     cd "samtools-1.12"
     autoheader
     autoconf -Wno-syntax
-    ./configure --without-curses --disable-lzma
+    ./configure --without-curses --disable-lzma --disable-bz2
     make
     cp samtools "$ROOT/bin/samtools"
-    rm "samtools-1.12.tar.bz2"
 else
     echo "samtools binary already present."
 fi
