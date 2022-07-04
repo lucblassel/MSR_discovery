@@ -13,6 +13,7 @@ bin/meryl
 bin/pbsim
 bin/winnowmap
 bin/bigBedToBed
+bin/fastatools
 
 # Ignore extracted files during init.sh execution
 tools/minimap2-2.22_x64*/

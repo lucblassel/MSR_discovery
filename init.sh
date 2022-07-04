@@ -272,13 +272,6 @@ echo "Succesfully initialized pipeline environment!"
         echo "Reference Human genome already downloaded and processed."
     fi
 
-    if [[ ! -f "$ROOT/data/real_drosophila_reads.fa" ]]; then
-        wget "https://obj.umiacs.umd.edu/marbl_publications/hicanu/dmel_hifi_40x.fasta.gz"
-        mv "dmel_hifi_40x.fasta.gz" "$ROOT/data/real_drosophila_reads.fa"
-    else
-        echo "Real Drosophila reads already downloaded."
-    fi
-
     if [[ ! -f "$ROOT/data/whole_drosophila_genome.fa" ]]; then
         wget "http://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.35_FB2020_04/fasta/dmel-all-chromosome-r6.35.fasta.gz"
         echo "Pre-processing drosophila genome"
