@@ -10,7 +10,7 @@ mappers = Channel.from("minimap2", "winnowmap")
 simulators = Channel.from("pbsim", "nanosim")
 
 // Data
-repeatRegions = file("./data/chm13.repeats.renamed.bed")
+repeatRegions = file("./data/chm13.repeats.bed")
 MSRs = Channel.fromPath("./data/SSRs/MSRs/*.json")
 
 // Models
