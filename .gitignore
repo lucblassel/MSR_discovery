@@ -1,6 +1,7 @@
 # input and output directories
 data/
 results/
+temp_data/
 
 # Ignore buildable executables
 bin/bedtools

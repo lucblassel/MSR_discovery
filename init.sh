@@ -266,7 +266,7 @@ echo "Succesfully initialized pipeline environment!"
         echo "Pre-Processing Whole human genome"
         gunzip -c "./GCA_009914755.3_T2T-CHM13v1.1_genomic.fna.gz" | \
         "$ROOT/tools/fastatools/fastatools" upper | \
-        "$ROOT/tools/fastatools/fastatools" rename --file "$ROOT/data/renamer.txt" > \
+        "$ROOT/tools/fastatools/fastatools" rename --file "$ROOT/tools/renamer.txt" > \
         "$ROOT/data/whole_human_genome.fa"
     else
         echo "Reference Human genome already downloaded and processed."
@@ -298,7 +298,7 @@ echo "Succesfully initialized pipeline environment!"
 
     if [[ ! -f "$ROOT/data/chm13.repeats.bed" ]]; then
         wget "https://t2t.gi.ucsc.edu/chm13/hub/t2t-chm13-v1.1/rmsk/rmsk.bigBed"
-        "$ROOT/bin/bigBedToBed rmsk.bigBed $ROOT/data/chm13.repeats.bed"
+        "$ROOT/bin/bigBedToBed" ./rmsk.bigBed "$ROOT/data/chm13.repeats.bed"
     else
         echo "Already processed RepeatMasker track"
     fi
