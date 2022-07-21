@@ -1,5 +1,9 @@
 # Mapping-friendly Sequence Reduction function discovery
 
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6859636.svg)](https://doi.org/10.5281/zenodo.6859636)
+
+
 ## Introduction
 
 This is the repository linked to the ["Mapping-friendly sequence reductions: going beyond homopolymer compression"]() paper.  
